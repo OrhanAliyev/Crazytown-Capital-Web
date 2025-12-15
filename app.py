@@ -58,7 +58,7 @@ st.markdown("""
         }
 
         /* 4. CAM KUTULAR */
-        .glass-box, .metric-container, .pricing-card, .login-container, .testimonial-card, .status-bar, .vip-card {
+        .glass-box, .metric-container, .pricing-card, .login-container, .testimonial-card, .status-bar, .vip-card, .payment-card {
             background: rgba(20, 25, 30, 0.85) !important;
             backdrop-filter: blur(15px);
             border: 1px solid rgba(102, 252, 241, 0.2);
@@ -69,6 +69,7 @@ st.markdown("""
             margin-bottom: 20px;
         }
         
+        .payment-card { border: 1px solid #ffd700; background: rgba(255, 215, 0, 0.05) !important; }
         .login-container { max-width: 400px; margin: 50px auto; border: 1px solid #66fcf1; box-shadow: 0 0 20px rgba(102, 252, 241, 0.2); }
         
         /* HEADER BARLARI */
@@ -243,7 +244,7 @@ def show_dashboard():
     </div>
     """, unsafe_allow_html=True)
 
-    # 2. GLOBAL METRICS (KÜRESEL METRİKLER)
+    # 2. GLOBAL METRICS
     components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "CRYPTOCAP:TOTAL", "title": "Total Market Cap"}, {"proName": "CRYPTOCAP:BTC.D", "title": "BTC Dominance"}, {"proName": "CRYPTOCAP:USDT.D", "title": "USDT Dominance"}, {"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "locale": "en"}</script></div>""", height=40)
 
     st.write("")
@@ -254,14 +255,13 @@ def show_dashboard():
     # --- ANA SEKMELER ---
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["DASHBOARD", "MARKET DATA", "FUTURES TERMINAL", "NEWS", "PROFILE & VIP"])
     
-    # TAB 1: KİŞİSEL DASHBOARD
+    # TAB 1: DASHBOARD
     with tab1:
         if df.empty:
             st.info("No personal trade data.")
         else:
             total = len(df); win = len(df[df['Sonuç'] == 'WIN']); rate = (win / total * 100) if total > 0 else 0
             net = df['R_Kazanc'].sum()
-            
             c1, c2, c3, c4 = st.columns(4)
             c1.markdown(f'<div class="metric-container"><div class="metric-value">{total}</div><div style="color:#888;">TRADES</div></div>', unsafe_allow_html=True)
             c2.markdown(f'<div class="metric-container"><div class="metric-value">{rate:.1f}%</div><div style="color:#888;">WIN RATE</div></div>', unsafe_allow_html=True)
@@ -278,10 +278,9 @@ def show_dashboard():
                 fig_pie = px.pie(df, names='Sonuç', values=[1]*len(df), hole=0.7, color='Sonuç', color_discrete_map={'WIN':'#66fcf1', 'LOSS':'#ff4b4b'})
                 fig_pie.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', showlegend=False, height=300)
                 st.plotly_chart(fig_pie, use_container_width=True)
-            
             st.dataframe(df, use_container_width=True, hide_index=True)
 
-    # TAB 2: MARKET DATA (YÜKSELENLER / DÜŞENLER / HEATMAP)
+    # TAB 2: MARKET DATA
     with tab2:
         col1, col2 = st.columns(2)
         with col1:
@@ -294,18 +293,15 @@ def show_dashboard():
         st.subheader("🌍 CRYPTO HEATMAP")
         components.html("""<script defer src="https://www.livecoinwatch.com/widgets/heatmap.js"></script><div class="livecoinwatch-widget-heatmap" currency="USD" width="100%" height="400"></div>""", height=400)
 
-    # TAB 3: FUTURES TERMINAL (LİKİDASYON / HACİM / FONLAMA)
+    # TAB 3: FUTURES TERMINAL
     with tab3:
-        st.info("⚠️ INSTITUTIONAL DATA FEED")
         c1, c2 = st.columns([2, 1])
         with c1:
             st.subheader("🗺️ LIQUIDATION & VOLUME ANALYSIS")
-            # Coinglass benzeri grafik (TradingView advanced chart ile simüle edildi)
             components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>{"width": "100%", "height": "500", "symbol": "BINANCE:BTCUSDT.P", "interval": "15", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "en", "enable_publishing": false, "allow_symbol_change": true, "calendar": false, "studies": ["STD;Volume@tv-basicstudies","STD;VWAP@tv-basicstudies"], "support_host": "https://www.tradingview.com"}</script></div>""", height=500)
         
         with c2:
             st.subheader("💸 FUNDING RATES")
-            # Statik Simülasyon (Gerçek veri API gerektirir, görsel olarak eklendi)
             st.markdown("""
             <div class="glass-box" style="text-align:left;">
                 <table style="width:100%; color:#ccc;">
@@ -317,22 +313,13 @@ def show_dashboard():
                 </table>
             </div>
             """, unsafe_allow_html=True)
-            
-            st.subheader("📊 VOLUME SCANNER")
-            st.markdown("""
-            <div class="glass-box" style="text-align:left;">
-                <p>⚡ <b>High Vol:</b> PEPE, WIF, SOL</p>
-                <p>📉 <b>Low Vol:</b> ADA, MATIC</p>
-                <p>🐋 <b>Whale Alert:</b> +500 BTC moved to Binance</p>
-            </div>
-            """, unsafe_allow_html=True)
 
-    # TAB 4: NEWS (HABERLER)
+    # TAB 4: NEWS
     with tab4:
         st.subheader("📰 LIVE NEWS TERMINAL")
         components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>{"feedMode": "all_symbols", "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": "600", "locale": "en"}</script></div>""", height=600)
 
-    # TAB 5: PROFILE & VIP
+    # TAB 5: PROFILE & VIP (YENİ ÖDEME SİSTEMİ)
     with tab5:
         c1, c2 = st.columns(2)
         with c1:
@@ -341,24 +328,68 @@ def show_dashboard():
             new_pass = st.text_input("New Password", type="password")
             if st.button("UPDATE PASSWORD"):
                 st.info("Password update request sent to admin.")
+            
+            st.markdown("<br><h3>📞 CONTACT SUPPORT</h3>", unsafe_allow_html=True)
+            st.markdown("**Telegram:** [@Orhan1909](https://t.me/Orhan1909)")
+            st.markdown("**Email:** orhanaliyev02@gmail.com")
             st.markdown("</div>", unsafe_allow_html=True)
             
         with c2:
             st.markdown("""
-            <div class='vip-card' style='border:1px solid #ffd700;'>
-                <h2 style='color:#ffd700'>👑 VIP APPLICATION</h2>
-                <p style='text-align:left; font-size:0.9rem;'>
-                Crazytown VIP provides institutional-grade access:<br>
-                - <b>0ms Latency</b> Signals<br>
-                - <b>One-on-One</b> Mentorship<br>
-                - <b>Whale Wallet</b> Tracking<br>
-                - <b>Private</b> Discord Access
-                </p>
+            <div class='payment-card'>
+                <h2 style='color:#ffd700'>👑 VIP PAYMENT</h2>
+                <p>Unlock Institutional Signals & 0ms Latency</p>
+                <div style='text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:5px;'>
+                    <b>USDT (TRC20):</b><br>
+                    <code style='color:#66fcf1'>TL8w... (KENDİ TRC20 ADRESİNİ YAZ)</code>
+                </div>
+                <br>
+                <div style='text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:5px;'>
+                    <b>BITCOIN (BTC):</b><br>
+                    <code style='color:#ffd700'>1A1z... (KENDİ BTC ADRESİNİ YAZ)</code>
+                </div>
+                <br>
+                <div style='text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:5px;'>
+                    <b>BANK TRANSFER (IBAN):</b><br>
+                    <code>TR12 0000... (KENDİ IBANINI YAZ)</code>
+                </div>
+                <br>
+                <p style='font-size:0.8rem; color:#888;'>*After payment, send receipt to @Orhan1909</p>
             </div>
             """, unsafe_allow_html=True)
-            vip_msg = st.text_area("Why do you want to join VIP?")
-            if st.button("SUBMIT APPLICATION"):
-                st.success("Application received! We will contact you via Telegram.")
+            
+            if st.button("CONFIRM PAYMENT"):
+                st.success("Payment notification sent! Admin will verify shortly.")
+
+    # KVKK FOOTER
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    with st.expander("⚖️ LEGAL | KVKK & PRIVACY POLICY (AYDINLATMA METNİ)"):
+        st.markdown("""
+        ### KİŞİSEL VERİLERİN KORUNMASI KANUNU (KVKK) AYDINLATMA METNİ
+        
+        **CRAZYTOWN CAPITAL** olarak kişisel verilerinizin güvenliği hususuna azami hassasiyet göstermekteyiz. 
+        6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, kişisel verileriniz aşağıda açıklanan kapsamda işlenebilecektir.
+
+        **1. Veri Sorumlusu:**
+        Kişisel verileriniz; veri sorumlusu sıfatıyla **CRAZYTOWN CAPITAL** tarafından işlenmektedir.
+
+        **2. Kişisel Verilerin İşlenme Amacı:**
+        Toplanan kişisel verileriniz; platform üyelik işlemlerinin gerçekleştirilmesi, finansal analiz hizmetlerinin sunulması, 
+        yasal yükümlülüklerin yerine getirilmesi ve müşteri destek süreçlerinin yönetilmesi amacıyla işlenmektedir.
+
+        **3. İşlenen Kişisel Veriler:**
+        - Kimlik Bilgileri (Ad, Soyad)
+        - İletişim Bilgileri (E-posta, Telefon Numarası)
+        - İşlem Güvenliği Bilgileri (Kullanıcı Adı, Şifre, IP Adresi)
+
+        **4. Kişisel Verilerin Aktarılması:**
+        Kişisel verileriniz, yasal zorunluluklar (resmi kurumlar) dışında üçüncü kişilerle paylaşılmamaktadır.
+
+        **5. Haklarınız:**
+        KVKK'nın 11. maddesi gereği; verilerinizin işlenip işlenmediğini öğrenme, düzeltme talep etme ve silinmesini isteme hakkına sahipsiniz.
+        
+        *İletişim: orhanaliyev02@gmail.com*
+        """)
 
 # ==========================================
 # 5. MAIN ROUTER
