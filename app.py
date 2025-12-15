@@ -10,7 +10,7 @@ import time
 import random
 
 # ==========================================
-# 1. AYARLAR VE TASARIM (ORİJİNAL V303)
+# 1. AYARLAR VE TASARIM (ELMASLI & CAM)
 # ==========================================
 st.set_page_config(
     page_title="Crazytown Capital",
@@ -19,7 +19,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS: V303 GÖRÜNÜMÜ + YENİ EFEKTLER ---
+# --- CSS TASARIMI ---
 st.markdown("""
     <style>
         /* 1. TEMEL AYARLAR */
@@ -39,7 +39,7 @@ st.markdown("""
             color: #c5c6c7; font-family: 'Inter', sans-serif;
         }
 
-        /* 3. ELMAS ANIMASYONU (KORUNDU) */
+        /* 3. ELMAS ANIMASYONU */
         .area { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
         .circles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
         .circles li {
@@ -68,25 +68,6 @@ st.markdown("""
             text-align: center;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
             margin-bottom: 20px;
-        }
-        
-        /* YENİ: CANLI TRADE KARTI (NABIZ EFEKTİ) */
-        .live-trade-card {
-            background: rgba(20, 255, 0, 0.1) !important;
-            border: 1px solid #00ff00;
-            border-left: 5px solid #00ff00;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            backdrop-filter: blur(10px);
-            animation: pulse 2s infinite;
-            z-index: 2; position: relative;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.2); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 255, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
         }
         
         .login-container { max-width: 400px; margin: 50px auto; border: 1px solid #66fcf1; box-shadow: 0 0 20px rgba(102, 252, 241, 0.2); }
@@ -286,25 +267,10 @@ def show_dashboard():
         st.session_state.logged_in = False
         go_to("Home")
 
-    # YENİ TAB YAPISI (API & BOTS EKLENDİ)
-    tab1, tab2, tab3, tab4 = st.tabs(["DASHBOARD", "INTELLIGENCE", "TOOLS", "API & BOTS"])
+    # TABS: API KALDIRILDI, HABERLER EKLENDİ
+    tab1, tab2, tab3, tab4 = st.tabs(["DASHBOARD", "INTELLIGENCE", "NEWS TERMINAL", "TOOLS"])
     
-    # TAB 1: DASHBOARD
     with tab1:
-        # YENİ: CANLI TRADE KARTI BURAYA GELDİ
-        st.markdown("""
-        <div class="live-trade-card">
-            <div>
-                <h3 style="margin:0; color:#fff;">BTC/USDT <span style="font-size:0.8rem; background:#00ff00; color:#000; padding:2px 6px; border-radius:4px;">LONG</span></h3>
-                <span style="color:#888; font-size:0.9rem;">Entry: $98,450 | Leverage: 10x</span>
-            </div>
-            <div style="text-align:right;">
-                <h2 style="margin:0; color:#00ff00;">+14.5%</h2>
-                <span style="color:#888; font-size:0.8rem;">PNL (Live)</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
         if df.empty:
             st.info("Awaiting data...")
         else:
@@ -334,15 +300,34 @@ def show_dashboard():
             def style_df(row): return [f'color: {"#66fcf1" if row["Sonuç"]=="WIN" else "#ff4b4b"}; font-weight: bold' if col == "Sonuç" else 'color: #c5c6c7' for col in row.index]
             st.dataframe(df.style.apply(style_df, axis=1), use_container_width=True, hide_index=True)
 
-    # TAB 2: INTELLIGENCE
     with tab2:
         mi1, mi2, mi3 = st.columns(3)
         with mi1: st.markdown("##### GAUGE"); components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>{"interval": "4h", "width": "100%", "isTransparent": true, "height": "350", "symbol": "BINANCE:BTCUSDT", "showIntervalTabs": false, "displayMode": "single", "locale": "en", "colorTheme": "dark"}</script></div>""", height=350)
         with mi2: st.markdown("##### FEAR & GREED"); components.html("""<img src="https://alternative.me/crypto/fear-and-greed-index.png" style="width:100%; border-radius:10px;" />""", height=350)
         with mi3: st.markdown("##### CALENDAR"); components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>{"colorTheme": "dark", "isTransparent": true, "width": "100%", "height": "350", "locale": "en", "importanceFilter": "-1,0,1", "currencyFilter": "USD"}</script></div>""", height=350)
 
-    # TAB 3: TOOLS (AFFILIATE EKLENDİ)
+    # YENİ TAB 3: NEWS TERMINAL (API YERİNE GELDİ)
     with tab3:
+        st.subheader("📰 BREAKING NEWS & ALERTS")
+        components.html("""
+        <div class="tradingview-widget-container">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
+          {
+          "feedMode": "all_symbols",
+          "colorTheme": "dark",
+          "isTransparent": true,
+          "displayMode": "regular",
+          "width": "100%",
+          "height": "600",
+          "locale": "en"
+        }
+          </script>
+        </div>
+        """, height=600)
+
+    # TAB 4: TOOLS & AFFILIATE
+    with tab4:
         st.subheader("🧮 TRADING CALCULATORS")
         c1, c2 = st.columns(2)
         with c1:
@@ -362,27 +347,6 @@ def show_dashboard():
         ac1, ac2 = st.columns(2)
         with ac1: st.text_input("Your Referral Link", value=f"https://crazytown.capital/?ref={ui.get('Username')}", disabled=True)
         with ac2: st.metric("Commission Pending", "$0.00")
-
-    # YENİ TAB 4: API & BOTS
-    with tab4:
-        st.subheader("🔗 API CONNECTION")
-        c1, c2 = st.columns([1,2])
-        with c1:
-            st.markdown("Connect Binance or Bitget to automate signals.")
-            ex = st.selectbox("Exchange", ["Binance Futures", "Bitget", "Bybit"])
-            st.text_input("API Key", type="password")
-            st.text_input("API Secret", type="password")
-            if st.button("CONNECT"):
-                st.success(f"Connected to {ex}")
-                time.sleep(1)
-        with c2:
-             st.markdown("### ACTIVE BOTS")
-             st.markdown("""
-            <div class="glass-box" style="text-align:left; display:flex; justify-content:space-between;">
-                <div><b>🚀 SNIPER V2 (BTC)</b><br><small>Status: Running | PNL: +45%</small></div>
-                <button style="background:#ff4b4b; color:white; border:none; padding:5px 10px; border-radius:4px;">STOP</button>
-            </div>
-            """)
 
 # ==========================================
 # 5. MAIN ROUTER
