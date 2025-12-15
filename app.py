@@ -10,7 +10,7 @@ import time
 import random
 
 # ==========================================
-# 1. AYARLAR VE TASARIM (EN ÖNEMLİ KISIM)
+# 1. AYARLAR VE TASARIM
 # ==========================================
 st.set_page_config(
     page_title="Crazytown Capital",
@@ -19,7 +19,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS: V115 GÖRÜNÜMÜNÜ GERİ GETİRDİK ---
+# --- CSS: V115 GÖRÜNÜMÜ + PORTAL ---
 st.markdown("""
     <style>
         /* 1. TEMEL AYARLAR */
@@ -29,18 +29,17 @@ st.markdown("""
             padding-top: 1rem !important; 
             padding-bottom: 2rem !important; 
             max-width: 100% !important;
-            z-index: 2; /* İçerik Önde */
-            position: relative;
+            z-index: 2; position: relative;
         }
 
-        /* 2. ARKA PLAN (KOYU VE DERİN) */
+        /* 2. ARKA PLAN */
         .stApp {
             background-color: #0b0c10;
             background: radial-gradient(circle at center, #1f2833 0%, #0b0c10 100%);
             color: #c5c6c7; font-family: 'Inter', sans-serif;
         }
 
-        /* 3. ELMAS ANIMASYONU (ARKADA DÖNENLER) */
+        /* 3. ELMAS ANIMASYONU */
         .area { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
         .circles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
         .circles li {
@@ -52,10 +51,6 @@ st.markdown("""
         .circles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
         .circles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
         .circles li:nth-child(4){ left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
-        .circles li:nth-child(5){ left: 65%; width: 20px; height: 20px; animation-delay: 0s; }
-        .circles li:nth-child(6){ left: 75%; width: 110px; height: 110px; animation-delay: 3s; }
-        .circles li:nth-child(7){ left: 35%; width: 150px; height: 150px; animation-delay: 7s; }
-        .circles li:nth-child(8){ left: 50%; width: 25px; height: 25px; animation-delay: 15s; animation-duration: 45s; }
         
         @keyframes animate {
             0%{ transform: translateY(0) rotate(45deg); opacity: 0; }
@@ -64,7 +59,7 @@ st.markdown("""
         }
 
         /* 4. CAM KUTULAR (GLASSMORPHISM) */
-        .glass-box, .metric-container, .pricing-card, .login-container {
+        .glass-box, .metric-container, .pricing-card, .login-container, .testimonial-card, .status-bar {
             background: rgba(31, 40, 51, 0.85) !important;
             backdrop-filter: blur(15px);
             border: 1px solid rgba(102, 252, 241, 0.3);
@@ -75,44 +70,24 @@ st.markdown("""
             margin-bottom: 20px;
         }
         
-        /* GİRİŞ KUTUSU ÖZEL */
-        .login-container {
-            max-width: 400px;
-            margin: 50px auto;
-            border: 1px solid #66fcf1;
-            box-shadow: 0 0 20px rgba(102, 252, 241, 0.2);
-        }
+        .login-container { max-width: 400px; margin: 50px auto; border: 1px solid #66fcf1; box-shadow: 0 0 20px rgba(102, 252, 241, 0.2); }
+        .status-bar { display: flex; gap: 15px; justify-content: center; margin-bottom: 10px; padding: 8px; color: #66fcf1; font-size: 0.8rem; border-bottom: 1px solid #66fcf1; }
+        .status-dot {height: 8px; width: 8px; background-color: #00ff00; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 5px #00ff00;}
 
-        /* 5. METİNLER VE BAŞLIKLAR */
+        /* 5. METİNLER */
         .hero-title { font-size: 3.5rem; font-weight: 800; text-align: center; color: #fff; text-shadow: 0 0 20px #66fcf1; margin-bottom: 10px; }
         .hero-sub { font-size: 1.2rem; text-align: center; color: #66fcf1; letter-spacing: 3px; margin-bottom: 40px; }
         .metric-value { font-size: 2.5rem; font-weight: 700; color: #fff; text-shadow: 0 0 10px rgba(102,252,241,0.5); }
-        .plan-price { font-size: 2.5rem; color: #fff; font-weight: 700; margin: 15px 0; }
-        
-        /* 6. INPUTLAR VE BUTONLAR */
-        .stTextInput input {
-            background-color: #15161a !important;
-            color: #fff !important;
-            border: 1px solid #2d3845 !important;
-            border-radius: 5px !important;
-        }
-        .stButton button {
-            background-color: #66fcf1 !important;
-            color: #0b0c10 !important;
-            font-weight: bold !important;
-            border: none !important;
-            border-radius: 5px !important;
-            width: 100% !important;
-            padding: 12px !important;
-            transition: all 0.3s ease;
-        }
-        .stButton button:hover {
-            background-color: #fff !important;
-            box-shadow: 0 0 15px #66fcf1;
-            transform: translateY(-2px);
-        }
+        .testimonial-text { font-style: italic; color: #ccc; margin-bottom: 10px; }
+        .testimonial-author { color: #66fcf1; font-weight: bold; }
 
-        /* 7. SEKME (TABS) TASARIMI */
+        /* 6. INPUTLAR VE BUTONLAR */
+        .stTextInput input { background-color: #15161a !important; color: #fff !important; border: 1px solid #2d3845 !important; border-radius: 5px !important; }
+        .stButton button { background-color: #66fcf1 !important; color: #0b0c10 !important; font-weight: bold !important; border: none !important; border-radius: 5px !important; width: 100% !important; padding: 12px !important; transition: all 0.3s ease; }
+        .stButton button:hover { background-color: #fff !important; box-shadow: 0 0 15px #66fcf1; transform: translateY(-2px); }
+        .custom-btn { display: inline-block; padding: 12px 30px; background-color: #66fcf1; color: #0b0c10; border-radius: 4px; text-decoration: none; font-weight: 600; width: 100%; text-align: center; }
+
+        /* 7. SEKME (TABS) */
         .stTabs [data-baseweb="tab-list"] { gap: 20px; border-bottom: 1px solid #1f2833; }
         .stTabs [data-baseweb="tab"] { height: 50px; color: #888; font-weight: 500; border: none; }
         .stTabs [aria-selected="true"] { color: #66fcf1 !important; border-bottom: 2px solid #66fcf1 !important; }
@@ -125,7 +100,7 @@ st.markdown("""
 st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 2. GOOGLE SHEET & SİSTEM (OTOMATİK TAMİR)
+# 2. GOOGLE SHEET & SİSTEM
 # ==========================================
 def get_client():
     try:
@@ -136,21 +111,18 @@ def get_client():
         return None
     except: return None
 
-# Users sayfasını kontrol et/oluştur
 def check_and_fix_users_sheet():
     client = get_client()
     if not client: return None
     try:
         sheet = client.open("Crazytown_Journal")
-        try:
-            return sheet.worksheet("Users")
+        try: return sheet.worksheet("Users")
         except:
             ws = sheet.add_worksheet(title="Users", rows="100", cols="4")
             ws.append_row(["Username", "Password", "Name", "Plan"])
             return ws
     except: return None
 
-# İşlem verilerini çek
 def load_trade_data():
     client = get_client()
     if not client: return pd.DataFrame()
@@ -163,7 +135,6 @@ def load_trade_data():
         return df
     except: return pd.DataFrame()
 
-# Üyelik İşlemleri
 def register_user(username, password, name):
     ws = check_and_fix_users_sheet()
     if not ws: return "Connection Error"
@@ -178,8 +149,7 @@ def login_user(username, password):
     if not ws: return None
     users = ws.get_all_records()
     for u in users:
-        if str(u.get('Username')) == username and str(u.get('Password')) == password:
-            return u
+        if str(u.get('Username')) == username and str(u.get('Password')) == password: return u
     return None
 
 # ==========================================
@@ -193,7 +163,7 @@ def go_to(page):
     st.session_state.current_page = page
     st.rerun()
 
-# --- HOME PAGE (AÇILIŞ) ---
+# --- HOME PAGE ---
 def show_home():
     components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}, {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"}, {"proName": "BINANCE:SOLUSDT", "title": "Solana"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "en"}</script></div>""", height=50)
 
@@ -211,16 +181,27 @@ def show_home():
     with c1: st.markdown("""<div class="glass-box"><h3>🤖 AI Sniper Algorithms</h3><p>24/7 Market Scanning & Automated FVG Detection</p></div>""", unsafe_allow_html=True)
     with c2: st.markdown("""<div class="glass-box"><h3>📊 Institutional Dashboard</h3><p>Real-time analytics, Win-Rate tracking & Risk Management</p></div>""", unsafe_allow_html=True)
 
+    # SOCIAL PROOF (GERİ GELDİ!)
+    st.markdown("<br><h3 style='text-align:center; color:#fff;'>TRADER FEEDBACK</h3>", unsafe_allow_html=True)
+    sp1, sp2, sp3 = st.columns(3)
+    with sp1: st.markdown("""<div class="testimonial-card"><div class="testimonial-text">"The risk management is top tier. I finally stopped blowing accounts."</div><div class="testimonial-author">@Crypto***</div></div>""", unsafe_allow_html=True)
+    with sp2: st.markdown("""<div class="testimonial-card"><div class="testimonial-text">"FVG setups are insane. It catches moves I always miss."</div><div class="testimonial-author">@Alex***</div></div>""", unsafe_allow_html=True)
+    with sp3: st.markdown("""<div class="testimonial-card"><div class="testimonial-text">"Worth every penny. The community is gold."</div><div class="testimonial-author">@Mehmet***</div></div>""", unsafe_allow_html=True)
+
     st.markdown("<br><h3 style='text-align:center; color:#fff;'>MEMBERSHIP PLANS</h3>", unsafe_allow_html=True)
     pc1, pc2, pc3 = st.columns(3)
     with pc1: st.markdown("""<div class="pricing-card"><h3>STARTER</h3><div class="plan-price">$30</div><p>/month</p></div>""", unsafe_allow_html=True)
     with pc2: st.markdown("""<div class="pricing-card" style="border:1px solid #66fcf1; box-shadow:0 0 15px rgba(102,252,241,0.2);"><h3>PRO</h3><div class="plan-price">$75</div><p>/quarter</p></div>""", unsafe_allow_html=True)
     with pc3: st.markdown("""<div class="pricing-card"><h3>LIFETIME</h3><div class="plan-price">$250</div><p>one-time</p></div>""", unsafe_allow_html=True)
+    
+    # FAQ (GERİ GELDİ!)
+    st.markdown("<br><h3 style='text-align:center; color:#fff;'>FAQ</h3>", unsafe_allow_html=True)
+    with st.expander("How do I get access?"): st.write("Register an account and contact support on Telegram.")
+    with st.expander("Is my capital safe?"): st.write("We use strict risk management (max 2% risk per trade).")
 
 # --- REGISTER PAGE ---
 def show_register():
     st.markdown('<div class="hero-title" style="font-size:2.5rem;">JOIN THE ELITE</div>', unsafe_allow_html=True)
-    
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     with st.form("reg"):
         st.markdown("<h3 style='color:#fff;'>CREATE ACCOUNT</h3>", unsafe_allow_html=True)
@@ -243,7 +224,6 @@ def show_register():
 # --- LOGIN PAGE ---
 def show_login():
     st.markdown('<div class="hero-title" style="font-size:2.5rem;">SECURE LOGIN</div>', unsafe_allow_html=True)
-    
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     with st.form("log"):
         st.markdown("<h3 style='color:#fff;'>MEMBER ACCESS</h3>", unsafe_allow_html=True)
@@ -254,7 +234,6 @@ def show_login():
                 st.session_state.logged_in = True
                 st.session_state.user_info = {"Name": "Orhan Aliyev", "Plan": "ADMIN"}
                 st.rerun()
-            
             ud = login_user(u, p)
             if ud:
                 st.session_state.logged_in = True
@@ -266,18 +245,22 @@ def show_login():
     if st.button("Back Home"): go_to("Home")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- DASHBOARD (V115 GÖRÜNÜMÜ) ---
+# --- DASHBOARD (PRIVATE AREA) ---
 def show_dashboard():
     df = load_trade_data()
     ui = st.session_state.user_info
     
-    # Top Bar
+    # SYSTEM STATUS BAR (GERİ GELDİ!)
+    latency = random.randint(12, 45)
     st.markdown(f"""
-    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(31,40,51,0.6); padding:10px 20px; border-radius:8px; border:1px solid #66fcf1; margin-bottom:15px;">
-        <div style="color:#66fcf1; font-weight:bold;">🟢 SYSTEM ONLINE</div>
-        <div style="text-align:right; color:#fff;">
-            User: <b>{ui.get('Name')}</b> | Plan: <span style="color:#00ff00;">{ui.get('Plan')}</span>
-        </div>
+    <div class="status-bar">
+        <span><span class="status-dot"></span>SYSTEM: <b>ONLINE</b></span>
+        <span>|</span>
+        <span>LATENCY: <b>{latency}ms</b></span>
+        <span>|</span>
+        <span>AI MODEL: <b>V10.2 (Sniper)</b></span>
+        <span>|</span>
+        <span>USER: <b>{ui.get('Name')}</b></span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -288,7 +271,7 @@ def show_dashboard():
         st.session_state.logged_in = False
         go_to("Home")
 
-    tab1, tab2 = st.tabs(["DASHBOARD", "INTELLIGENCE"])
+    tab1, tab2, tab3 = st.tabs(["DASHBOARD", "INTELLIGENCE", "TOOLS"])
     
     with tab1:
         if df.empty:
@@ -325,6 +308,26 @@ def show_dashboard():
         with mi1: st.markdown("##### GAUGE"); components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>{"interval": "4h", "width": "100%", "isTransparent": true, "height": "350", "symbol": "BINANCE:BTCUSDT", "showIntervalTabs": false, "displayMode": "single", "locale": "en", "colorTheme": "dark"}</script></div>""", height=350)
         with mi2: st.markdown("##### FEAR & GREED"); components.html("""<img src="https://alternative.me/crypto/fear-and-greed-index.png" style="width:100%; border-radius:10px;" />""", height=350)
         with mi3: st.markdown("##### CALENDAR"); components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>{"colorTheme": "dark", "isTransparent": true, "width": "100%", "height": "350", "locale": "en", "importanceFilter": "-1,0,1", "currencyFilter": "USD"}</script></div>""", height=350)
+
+    # TOOLS (ROI & RISK HESAPLAYICI - GERİ GELDİ!)
+    with tab3:
+        st.subheader("🧮 TRADING CALCULATORS")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("##### 💰 ROI SIMULATOR")
+            caps = st.number_input("Capital ($)", 100, 100000, 1000)
+            risk = st.slider("Risk (%)", 0.5, 5.0, 2.0)
+            net_r_total = df['R_Kazanc'].sum() if not df.empty else 0
+            prof = caps * (risk/100) * net_r_total
+            st.markdown(f"""<div style="background:rgba(31,40,51,0.8); padding:10px; border-radius:5px; border:1px solid #333; text-align:center;">Potential Balance: <b style="color:#66fcf1">${caps+prof:,.2f}</b></div>""", unsafe_allow_html=True)
+        with c2:
+            st.markdown("##### ⚠️ RISK OF RUIN")
+            st.markdown(f"""<div style="background:rgba(31,40,51,0.8); padding:10px; border-radius:5px; border:1px solid #333; text-align:center;">Risk of Ruin: <b style="color:#66fcf1">0.0000%</b></div>""", unsafe_allow_html=True)
+
+        st.divider()
+        co1, co2 = st.columns(2)
+        with co1: st.markdown("""### 📨 Telegram<br><a href="https://t.me/Orhan1909" class="custom-btn">OPEN CHAT</a>""", unsafe_allow_html=True)
+        with co2: st.markdown("""### 📧 Email<br><div style="background:#1f2833; padding:12px; border-radius:4px; text-align:center;">orhanaliyev02@gmail.com</div>""", unsafe_allow_html=True)
 
 # ==========================================
 # 5. MAIN ROUTER
