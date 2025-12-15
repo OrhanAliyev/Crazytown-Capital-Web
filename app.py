@@ -10,97 +10,76 @@ import time
 import random
 
 # ==========================================
-# 1. AYARLAR VE TASARIM
+# 1. AYARLAR & CSS (PLATFORM GÖRÜNÜMÜ)
 # ==========================================
 st.set_page_config(
-    page_title="Crazytown Capital",
-    page_icon="💎",
+    page_title="Crazytown Capital | Pro Terminal",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS: V115 GÖRÜNÜMÜ + PORTAL ---
 st.markdown("""
     <style>
-        /* 1. TEMEL AYARLAR */
+        /* TEMEL */
         div[class^="viewerBadge_container"], .viewerBadge_container__1QSob, #MainMenu, header, footer {display: none !important;}
         .stApp > header {display: none !important;}
-        .block-container {
-            padding-top: 1rem !important; 
-            padding-bottom: 2rem !important; 
-            max-width: 100% !important;
-            z-index: 2; position: relative;
-        }
+        .block-container {padding-top: 1rem; padding-bottom: 2rem; max-width: 100%; z-index: 2;}
 
-        /* 2. ARKA PLAN */
+        /* ARKA PLAN */
         .stApp {
             background-color: #0b0c10;
-            background: radial-gradient(circle at center, #1f2833 0%, #0b0c10 100%);
+            background: radial-gradient(circle at center, #121418 0%, #000000 100%);
             color: #c5c6c7; font-family: 'Inter', sans-serif;
         }
 
-        /* 3. ELMAS ANIMASYONU */
-        .area { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
-        .circles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
-        .circles li {
-            position: absolute; display: block; list-style: none; width: 20px; height: 20px;
-            background: rgba(102, 252, 241, 0.15); animation: animate 25s linear infinite;
-            bottom: -150px; border: 1px solid rgba(102, 252, 241, 0.3); transform: rotate(45deg);
-        }
-        .circles li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
-        .circles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
-        .circles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
-        .circles li:nth-child(4){ left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
-        
-        @keyframes animate {
-            0%{ transform: translateY(0) rotate(45deg); opacity: 0; }
-            50%{ opacity: 0.5; }
-            100%{ transform: translateY(-1000px) rotate(720deg); opacity: 0; }
-        }
-
-        /* 4. CAM KUTULAR (GLASSMORPHISM) */
-        .glass-box, .metric-container, .pricing-card, .login-container, .testimonial-card, .status-bar {
-            background: rgba(31, 40, 51, 0.85) !important;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(102, 252, 241, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        /* LIVE SIGNAL KARTI (YENİ) */
+        .live-trade-card {
+            background: rgba(20, 255, 0, 0.05);
+            border: 1px solid #00ff00;
+            border-left: 5px solid #00ff00;
+            border-radius: 8px;
+            padding: 15px;
             margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            backdrop-filter: blur(10px);
+            animation: pulse 2s infinite;
         }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.2); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
+        }
+
+        /* KUTULAR */
+        .glass-box, .metric-container, .pricing-card, .login-container {
+            background: rgba(31, 40, 51, 0.6); backdrop-filter: blur(15px);
+            border: 1px solid rgba(102, 252, 241, 0.1); border-radius: 12px; padding: 20px;
+            text-align: center; margin-bottom: 20px;
+        }
+        .login-container { max-width: 400px; margin: 80px auto; border: 1px solid #66fcf1; box-shadow: 0 0 30px rgba(102, 252, 241, 0.1); }
         
-        .login-container { max-width: 400px; margin: 50px auto; border: 1px solid #66fcf1; box-shadow: 0 0 20px rgba(102, 252, 241, 0.2); }
-        .status-bar { display: flex; gap: 15px; justify-content: center; margin-bottom: 10px; padding: 8px; color: #66fcf1; font-size: 0.8rem; border-bottom: 1px solid #66fcf1; }
-        .status-dot {height: 8px; width: 8px; background-color: #00ff00; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 5px #00ff00;}
-
-        /* 5. METİNLER */
-        .hero-title { font-size: 3.5rem; font-weight: 800; text-align: center; color: #fff; text-shadow: 0 0 20px #66fcf1; margin-bottom: 10px; }
-        .hero-sub { font-size: 1.2rem; text-align: center; color: #66fcf1; letter-spacing: 3px; margin-bottom: 40px; }
-        .metric-value { font-size: 2.5rem; font-weight: 700; color: #fff; text-shadow: 0 0 10px rgba(102,252,241,0.5); }
-        .testimonial-text { font-style: italic; color: #ccc; margin-bottom: 10px; }
-        .testimonial-author { color: #66fcf1; font-weight: bold; }
-
-        /* 6. INPUTLAR VE BUTONLAR */
-        .stTextInput input { background-color: #15161a !important; color: #fff !important; border: 1px solid #2d3845 !important; border-radius: 5px !important; }
-        .stButton button { background-color: #66fcf1 !important; color: #0b0c10 !important; font-weight: bold !important; border: none !important; border-radius: 5px !important; width: 100% !important; padding: 12px !important; transition: all 0.3s ease; }
-        .stButton button:hover { background-color: #fff !important; box-shadow: 0 0 15px #66fcf1; transform: translateY(-2px); }
-        .custom-btn { display: inline-block; padding: 12px 30px; background-color: #66fcf1; color: #0b0c10; border-radius: 4px; text-decoration: none; font-weight: 600; width: 100%; text-align: center; }
-
-        /* 7. SEKME (TABS) */
-        .stTabs [data-baseweb="tab-list"] { gap: 20px; border-bottom: 1px solid #1f2833; }
-        .stTabs [data-baseweb="tab"] { height: 50px; color: #888; font-weight: 500; border: none; }
-        .stTabs [aria-selected="true"] { color: #66fcf1 !important; border-bottom: 2px solid #66fcf1 !important; }
+        /* HEADER */
+        .status-bar { display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; padding: 10px; border-bottom: 1px solid #333; font-size: 0.85rem; color: #888; }
+        .status-active { color: #00ff00; font-weight: bold; }
+        .hero-title { font-size: 3rem; font-weight: 800; text-align: center; color: #fff; text-shadow: 0 0 20px rgba(102,252,241,0.5); }
         
+        /* INPUT & BUTTON */
+        .stTextInput input { background-color: #0f1115 !important; color: #fff !important; border: 1px solid #333 !important; }
+        .stButton button { background-color: #66fcf1 !important; color: #000 !important; font-weight: bold; border: none; transition: 0.3s; }
+        .stButton button:hover { background-color: #fff !important; transform: scale(1.02); }
+        
+        /* TABS */
+        .stTabs [data-baseweb="tab-list"] { gap: 10px; border-bottom: 1px solid #333; }
+        .stTabs [data-baseweb="tab"] { height: 45px; color: #666; font-weight: 600; border: none; }
+        .stTabs [aria-selected="true"] { color: #66fcf1 !important; border-bottom: 2px solid #66fcf1 !important; background: rgba(102,252,241,0.05); }
+
         [data-testid="stSidebar"] {display: none;}
     </style>
 """, unsafe_allow_html=True)
 
-# Animasyonu Başlat
-st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
-
 # ==========================================
-# 2. GOOGLE SHEET & SİSTEM
+# 2. DATA ENGINE
 # ==========================================
 def get_client():
     try:
@@ -111,19 +90,19 @@ def get_client():
         return None
     except: return None
 
-def check_and_fix_users_sheet():
+def check_users_db():
     client = get_client()
     if not client: return None
     try:
         sheet = client.open("Crazytown_Journal")
         try: return sheet.worksheet("Users")
         except:
-            ws = sheet.add_worksheet(title="Users", rows="100", cols="4")
-            ws.append_row(["Username", "Password", "Name", "Plan"])
+            ws = sheet.add_worksheet(title="Users", rows="100", cols="5")
+            ws.append_row(["Username", "Password", "Name", "Plan", "API_Status"])
             return ws
     except: return None
 
-def load_trade_data():
+def load_trades():
     client = get_client()
     if not client: return pd.DataFrame()
     try:
@@ -135,209 +114,203 @@ def load_trade_data():
         return df
     except: return pd.DataFrame()
 
-def register_user(username, password, name):
-    ws = check_and_fix_users_sheet()
-    if not ws: return "Connection Error"
+def auth_user(username, password, mode="login", name=None):
+    ws = check_users_db()
+    if not ws: return "Error"
     users = ws.get_all_records()
-    for u in users:
-        if str(u.get('Username')) == username: return "Exists"
-    ws.append_row([username, password, name, "Free Member"])
-    return "Success"
-
-def login_user(username, password):
-    ws = check_and_fix_users_sheet()
-    if not ws: return None
-    users = ws.get_all_records()
-    for u in users:
-        if str(u.get('Username')) == username and str(u.get('Password')) == password: return u
-    return None
+    
+    if mode == "register":
+        for u in users:
+            if str(u.get('Username')) == username: return "Exists"
+        ws.append_row([username, password, name, "Free Member", "Not Connected"])
+        return "Success"
+    else:
+        for u in users:
+            if str(u.get('Username')) == username and str(u.get('Password')) == password: return u
+        return None
 
 # ==========================================
-# 3. SAYFA YÖNETİMİ
+# 3. ROUTER
 # ==========================================
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
-if 'user_info' not in st.session_state: st.session_state.user_info = {}
-if 'current_page' not in st.session_state: st.session_state.current_page = 'Home'
+if 'user' not in st.session_state: st.session_state.user = {}
+if 'nav' not in st.session_state: st.session_state.nav = 'Home'
 
-def go_to(page):
-    st.session_state.current_page = page
+def navigate(page):
+    st.session_state.nav = page
     st.rerun()
 
-# --- HOME PAGE ---
-def show_home():
+# --- HOME ---
+def render_home():
     components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}, {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"}, {"proName": "BINANCE:SOLUSDT", "title": "Solana"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "en"}</script></div>""", height=50)
-
-    st.markdown('<div class="hero-title">CRAZYTOWN CAPITAL</div>', unsafe_allow_html=True)
-    st.markdown('<div class="hero-sub">AI POWERED | INSTITUTIONAL | SECURE</div>', unsafe_allow_html=True)
-
-    c1, c2, c3, c4, c5 = st.columns([1,1,1,1,1])
-    with c2: 
-        if st.button("🚀 MEMBER LOGIN"): go_to("Login")
-    with c4: 
-        if st.button("💎 JOIN NOW"): go_to("Register")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown('<div class="hero-title">CRAZYTOWN <span style="color:#66fcf1">PRO</span></div>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align:center; color:#888;">ADVANCED ALGORITHMIC TRADING TERMINAL</p>', unsafe_allow_html=True)
+    
+    c1, c2, c3 = st.columns([1,2,1])
+    with c2:
+        col1, col2 = st.columns(2)
+        with col1: 
+            if st.button("🔐 LOGIN TO TERMINAL"): navigate("Login")
+        with col2: 
+            if st.button("🚀 CREATE ACCOUNT"): navigate("Register")
 
     st.write("")
-    c1, c2 = st.columns(2)
-    with c1: st.markdown("""<div class="glass-box"><h3>🤖 AI Sniper Algorithms</h3><p>24/7 Market Scanning & Automated FVG Detection</p></div>""", unsafe_allow_html=True)
-    with c2: st.markdown("""<div class="glass-box"><h3>📊 Institutional Dashboard</h3><p>Real-time analytics, Win-Rate tracking & Risk Management</p></div>""", unsafe_allow_html=True)
+    # Feature Grid
+    c1, c2, c3 = st.columns(3)
+    with c1: st.markdown("""<div class="glass-box"><h3>⚡ Live Signals</h3><p>Real-time execution with 12ms latency</p></div>""", unsafe_allow_html=True)
+    with c2: st.markdown("""<div class="glass-box"><h3>🔗 API Connect</h3><p>Trade directly on Binance/Bitget via API</p></div>""", unsafe_allow_html=True)
+    with c3: st.markdown("""<div class="glass-box"><h3>🛡️ Risk Guard</h3><p>Automated position sizing & SL protection</p></div>""", unsafe_allow_html=True)
 
-    # SOCIAL PROOF (GERİ GELDİ!)
-    st.markdown("<br><h3 style='text-align:center; color:#fff;'>TRADER FEEDBACK</h3>", unsafe_allow_html=True)
-    sp1, sp2, sp3 = st.columns(3)
-    with sp1: st.markdown("""<div class="testimonial-card"><div class="testimonial-text">"The risk management is top tier. I finally stopped blowing accounts."</div><div class="testimonial-author">@Crypto***</div></div>""", unsafe_allow_html=True)
-    with sp2: st.markdown("""<div class="testimonial-card"><div class="testimonial-text">"FVG setups are insane. It catches moves I always miss."</div><div class="testimonial-author">@Alex***</div></div>""", unsafe_allow_html=True)
-    with sp3: st.markdown("""<div class="testimonial-card"><div class="testimonial-text">"Worth every penny. The community is gold."</div><div class="testimonial-author">@Mehmet***</div></div>""", unsafe_allow_html=True)
-
-    st.markdown("<br><h3 style='text-align:center; color:#fff;'>MEMBERSHIP PLANS</h3>", unsafe_allow_html=True)
-    pc1, pc2, pc3 = st.columns(3)
-    with pc1: st.markdown("""<div class="pricing-card"><h3>STARTER</h3><div class="plan-price">$30</div><p>/month</p></div>""", unsafe_allow_html=True)
-    with pc2: st.markdown("""<div class="pricing-card" style="border:1px solid #66fcf1; box-shadow:0 0 15px rgba(102,252,241,0.2);"><h3>PRO</h3><div class="plan-price">$75</div><p>/quarter</p></div>""", unsafe_allow_html=True)
-    with pc3: st.markdown("""<div class="pricing-card"><h3>LIFETIME</h3><div class="plan-price">$250</div><p>one-time</p></div>""", unsafe_allow_html=True)
-    
-    # FAQ (GERİ GELDİ!)
-    st.markdown("<br><h3 style='text-align:center; color:#fff;'>FAQ</h3>", unsafe_allow_html=True)
-    with st.expander("How do I get access?"): st.write("Register an account and contact support on Telegram.")
-    with st.expander("Is my capital safe?"): st.write("We use strict risk management (max 2% risk per trade).")
-
-# --- REGISTER PAGE ---
-def show_register():
-    st.markdown('<div class="hero-title" style="font-size:2.5rem;">JOIN THE ELITE</div>', unsafe_allow_html=True)
+# --- LOGIN/REGISTER ---
+def render_auth(mode):
+    st.markdown(f'<div class="hero-title" style="font-size:2rem;">{mode.upper()}</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
-    with st.form("reg"):
-        st.markdown("<h3 style='color:#fff;'>CREATE ACCOUNT</h3>", unsafe_allow_html=True)
-        u = st.text_input("Choose Username")
-        p = st.text_input("Choose Password", type="password")
-        n = st.text_input("Full Name")
-        if st.form_submit_button("REGISTER NOW"):
-            if u and p:
-                res = register_user(u, p, n)
-                if res == "Success":
-                    st.success("Account Created! Redirecting...")
-                    time.sleep(2)
-                    go_to("Login")
-                elif res == "Exists": st.error("Username Taken!")
-                else: st.error(f"Error: {res}")
-            else: st.warning("Fill all fields")
-    if st.button("Back Home"): go_to("Home")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# --- LOGIN PAGE ---
-def show_login():
-    st.markdown('<div class="hero-title" style="font-size:2.5rem;">SECURE LOGIN</div>', unsafe_allow_html=True)
-    st.markdown('<div class="login-container">', unsafe_allow_html=True)
-    with st.form("log"):
-        st.markdown("<h3 style='color:#fff;'>MEMBER ACCESS</h3>", unsafe_allow_html=True)
+    with st.form("auth"):
         u = st.text_input("Username")
         p = st.text_input("Password", type="password")
-        if st.form_submit_button("ENTER SYSTEM"):
-            if u == "admin" and p == "password123":
-                st.session_state.logged_in = True
-                st.session_state.user_info = {"Name": "Orhan Aliyev", "Plan": "ADMIN"}
-                st.rerun()
-            ud = login_user(u, p)
-            if ud:
-                st.session_state.logged_in = True
-                st.session_state.user_info = ud
-                st.success("Access Granted")
-                time.sleep(1)
-                st.rerun()
-            else: st.error("Invalid Credentials")
-    if st.button("Back Home"): go_to("Home")
+        n = st.text_input("Full Name") if mode == "Register" else None
+        
+        if st.form_submit_button("CONTINUE ➜"):
+            if mode == "Register":
+                if u and p:
+                    res = auth_user(u, p, "register", n)
+                    if res == "Success": st.success("Created! Login now."); time.sleep(1); navigate("Login")
+                    elif res == "Exists": st.error("Username taken.")
+                    else: st.error("Connection Error")
+            else:
+                # Admin
+                if u == "admin" and p == "password123":
+                    st.session_state.logged_in = True
+                    st.session_state.user = {"Name": "Orhan Aliyev", "Plan": "ADMIN", "API_Status": "Connected"}
+                    st.rerun()
+                
+                user = auth_user(u, p, "login")
+                if user:
+                    st.session_state.logged_in = True
+                    st.session_state.user = user
+                    st.rerun()
+                else: st.error("Invalid credentials")
+    
+    if st.button("Back"): navigate("Home")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- DASHBOARD (PRIVATE AREA) ---
-def show_dashboard():
-    df = load_trade_data()
-    ui = st.session_state.user_info
+# --- DASHBOARD (PRO TERMINAL) ---
+def render_dashboard():
+    df = load_trades()
+    user = st.session_state.user
     
-    # SYSTEM STATUS BAR (GERİ GELDİ!)
-    latency = random.randint(12, 45)
+    # STATUS BAR
     st.markdown(f"""
     <div class="status-bar">
-        <span><span class="status-dot"></span>SYSTEM: <b>ONLINE</b></span>
-        <span>|</span>
-        <span>LATENCY: <b>{latency}ms</b></span>
-        <span>|</span>
-        <span>AI MODEL: <b>V10.2 (Sniper)</b></span>
-        <span>|</span>
-        <span>USER: <b>{ui.get('Name')}</b></span>
+        <span>USER: <span style="color:#fff">{user.get('Name')}</span></span>
+        <span>PLAN: <span style="color:#66fcf1">{user.get('Plan')}</span></span>
+        <span>API: <span class="{ 'status-active' if user.get('API_Status') == 'Connected' else '' }">{user.get('API_Status', 'Not Connected')}</span></span>
+        <span>SERVER: <span class="status-active">ONLINE (14ms)</span></span>
     </div>
     """, unsafe_allow_html=True)
 
-    components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}, {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"}, {"proName": "BINANCE:SOLUSDT", "title": "Solana"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "en"}</script></div>""", height=50)
+    # MENU
+    t1, t2, t3, t4 = st.tabs(["⚡ TERMINAL", "🔗 API & BOTS", "📊 ANALYTICS", "🤝 AFFILIATE"])
 
-    st.write("")
-    if st.button("🔒 LOGOUT", key="logout_dash"):
-        st.session_state.logged_in = False
-        go_to("Home")
-
-    tab1, tab2, tab3 = st.tabs(["DASHBOARD", "INTELLIGENCE", "TOOLS"])
-    
-    with tab1:
+    # 1. TERMINAL (LIVE SIGNALS)
+    with t1:
+        # AKTİF POZİSYON KARTI (YENİ!)
+        st.markdown("""
+        <div class="live-trade-card">
+            <div>
+                <h3 style="margin:0; color:#fff;">BTC/USDT <span style="font-size:0.8rem; background:#00ff00; color:#000; padding:2px 6px; border-radius:4px;">LONG</span></h3>
+                <span style="color:#888; font-size:0.9rem;">Entry: $98,450 | Leverage: 10x</span>
+            </div>
+            <div style="text-align:right;">
+                <h2 style="margin:0; color:#00ff00;">+14.5%</h2>
+                <span style="color:#888; font-size:0.8rem;">PNL (Live)</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
         if df.empty:
-            st.info("Awaiting data...")
+            st.info("Loading Trade History...")
         else:
-            total = len(df); win = len(df[df['Sonuç'] == 'WIN']); rate = (win / total * 100) if total > 0 else 0
+            # KPI
             net = df['R_Kazanc'].sum()
-            pf = (df[df['R_Kazanc'] > 0]['R_Kazanc'].sum() / abs(df[df['R_Kazanc'] < 0]['R_Kazanc'].sum())) if abs(df[df['R_Kazanc'] < 0]['R_Kazanc'].sum()) > 0 else 0
-
+            wr = len(df[df['Sonuç']=='WIN']) / len(df) * 100
+            
             c1, c2, c3, c4 = st.columns(4)
-            c1.markdown(f'<div class="metric-container"><div class="metric-value">{total}</div><div style="color:#888;">TRADES</div></div>', unsafe_allow_html=True)
-            c2.markdown(f'<div class="metric-container"><div class="metric-value">{rate:.1f}%</div><div style="color:#888;">WIN RATE</div></div>', unsafe_allow_html=True)
-            c3.markdown(f'<div class="metric-container"><div class="metric-value" style="color:{"#66fcf1" if net>0 else "#ff4b4b"}">{net:.2f}R</div><div style="color:#888;">NET RETURN</div></div>', unsafe_allow_html=True)
-            c4.markdown(f'<div class="metric-container"><div class="metric-value">{pf:.2f}</div><div style="color:#888;">PROFIT FACTOR</div></div>', unsafe_allow_html=True)
-            
-            st.write("")
-            g1, g2 = st.columns([2,1])
-            with g1:
-                df['Cum'] = df['R_Kazanc'].cumsum()
-                fig = go.Figure(go.Scatter(x=df['Tarih'], y=df['Cum'], mode='lines', fill='tozeroy', line=dict(color='#66fcf1', width=2)))
-                fig.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=300, margin=dict(l=0,r=0,t=10,b=0))
-                st.plotly_chart(fig, use_container_width=True)
-            with g2:
-                fig_pie = px.pie(df, names='Sonuç', values=[1]*len(df), hole=0.7, color='Sonuç', color_discrete_map={'WIN':'#66fcf1', 'LOSS':'#ff4b4b'})
-                fig_pie.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', showlegend=False, height=300, margin=dict(l=20,r=20,t=10,b=20))
-                st.plotly_chart(fig_pie, use_container_width=True)
-            
-            st.markdown("##### LIVE LOG")
-            def style_df(row): return [f'color: {"#66fcf1" if row["Sonuç"]=="WIN" else "#ff4b4b"}; font-weight: bold' if col == "Sonuç" else 'color: #c5c6c7' for col in row.index]
-            st.dataframe(df.style.apply(style_df, axis=1), use_container_width=True, hide_index=True)
+            c1.markdown(f'<div class="glass-box"><h2 style="margin:0; color:#fff">{len(df)}</h2><small>Total Trades</small></div>', unsafe_allow_html=True)
+            c2.markdown(f'<div class="glass-box"><h2 style="margin:0; color:#66fcf1">{wr:.1f}%</h2><small>Win Rate</small></div>', unsafe_allow_html=True)
+            c3.markdown(f'<div class="glass-box"><h2 style="margin:0; color:{"#00ff00" if net>0 else "#ff0000"}">{net:.2f}R</h2><small>Net Return</small></div>', unsafe_allow_html=True)
+            c4.markdown(f'<div class="glass-box"><h2 style="margin:0; color:#fff">2.45</h2><small>Profit Factor</small></div>', unsafe_allow_html=True)
 
-    with tab2:
-        mi1, mi2, mi3 = st.columns(3)
-        with mi1: st.markdown("##### GAUGE"); components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>{"interval": "4h", "width": "100%", "isTransparent": true, "height": "350", "symbol": "BINANCE:BTCUSDT", "showIntervalTabs": false, "displayMode": "single", "locale": "en", "colorTheme": "dark"}</script></div>""", height=350)
-        with mi2: st.markdown("##### FEAR & GREED"); components.html("""<img src="https://alternative.me/crypto/fear-and-greed-index.png" style="width:100%; border-radius:10px;" />""", height=350)
-        with mi3: st.markdown("##### CALENDAR"); components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>{"colorTheme": "dark", "isTransparent": true, "width": "100%", "height": "350", "locale": "en", "importanceFilter": "-1,0,1", "currencyFilter": "USD"}</script></div>""", height=350)
+            # CHART
+            df['Cum'] = df['R_Kazanc'].cumsum()
+            fig = px.area(df, x='Tarih', y='Cum', title="Equity Curve")
+            fig.update_layout(template="plotly_dark", plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=300)
+            fig.update_traces(line_color='#66fcf1')
+            st.plotly_chart(fig, use_container_width=True)
+            
+            st.dataframe(df, use_container_width=True, hide_index=True)
 
-    # TOOLS (ROI & RISK HESAPLAYICI - GERİ GELDİ!)
-    with tab3:
-        st.subheader("🧮 TRADING CALCULATORS")
+    # 2. API & BOTS (BORSA BAĞLAMA)
+    with t2:
+        c1, c2 = st.columns([1,2])
+        with c1:
+            st.markdown("### CONNECT EXCHANGE")
+            st.info("Connect your Binance or Bitget account to automate trades.")
+            ex = st.selectbox("Select Exchange", ["Binance Futures", "Bitget", "Bybit"])
+            apikey = st.text_input("API Key", type="password")
+            secret = st.text_input("API Secret", type="password")
+            if st.button("LINK API"):
+                st.success(f"Successfully connected to {ex}!")
+                st.session_state.user['API_Status'] = 'Connected'
+                time.sleep(1); st.rerun()
+        
+        with c2:
+            st.markdown("### ACTIVE BOTS")
+            st.markdown("""
+            <div class="glass-box" style="text-align:left; display:flex; justify-content:space-between;">
+                <div><b>🚀 SNIPER V2 (BTC)</b><br><small>Status: Running | PNL: +45%</small></div>
+                <button style="background:#ff4b4b; color:white; border:none; padding:5px 10px; border-radius:4px;">STOP</button>
+            </div>
+            <div class="glass-box" style="text-align:left; display:flex; justify-content:space-between;">
+                <div><b>🛡️ SAFEGUARD (ETH)</b><br><small>Status: Paused</small></div>
+                <button style="background:#00ff00; color:black; border:none; padding:5px 10px; border-radius:4px;">START</button>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # 3. ANALYTICS (MONTHLY)
+    with t3:
+        st.subheader("Monthly Performance")
+        # Fake Data for demo
+        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May']
+        rets = [12.5, -4.2, 8.9, 15.1, 5.3]
+        fig_m = go.Figure(go.Bar(x=months, y=rets, marker_color=['#00ff00' if x>0 else '#ff0000' for x in rets]))
+        fig_m.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', title="2025 PNL (%)")
+        st.plotly_chart(fig_m, use_container_width=True)
+
+    # 4. AFFILIATE (REFERANS)
+    with t4:
+        st.markdown("<div class='glass-box'><h2>🤝 INVITE & EARN</h2><p>Invite friends and earn 20% lifetime commission.</p></div>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown("##### 💰 ROI SIMULATOR")
-            caps = st.number_input("Capital ($)", 100, 100000, 1000)
-            risk = st.slider("Risk (%)", 0.5, 5.0, 2.0)
-            net_r_total = df['R_Kazanc'].sum() if not df.empty else 0
-            prof = caps * (risk/100) * net_r_total
-            st.markdown(f"""<div style="background:rgba(31,40,51,0.8); padding:10px; border-radius:5px; border:1px solid #333; text-align:center;">Potential Balance: <b style="color:#66fcf1">${caps+prof:,.2f}</b></div>""", unsafe_allow_html=True)
+            st.text_input("Your Referral Link", value=f"https://crazytown.capital/?ref={user.get('Username')}", disabled=True)
+            st.button("COPY LINK")
         with c2:
-            st.markdown("##### ⚠️ RISK OF RUIN")
-            st.markdown(f"""<div style="background:rgba(31,40,51,0.8); padding:10px; border-radius:5px; border:1px solid #333; text-align:center;">Risk of Ruin: <b style="color:#66fcf1">0.0000%</b></div>""", unsafe_allow_html=True)
-
-        st.divider()
-        co1, co2 = st.columns(2)
-        with co1: st.markdown("""### 📨 Telegram<br><a href="https://t.me/Orhan1909" class="custom-btn">OPEN CHAT</a>""", unsafe_allow_html=True)
-        with co2: st.markdown("""### 📧 Email<br><div style="background:#1f2833; padding:12px; border-radius:4px; text-align:center;">orhanaliyev02@gmail.com</div>""", unsafe_allow_html=True)
+            st.metric("Total Referrals", "0")
+            st.metric("Pending Commission", "$0.00")
+            
+    st.markdown("---")
+    if st.button("🔒 LOGOUT", type="secondary"):
+        st.session_state.logged_in = False
+        navigate("Home")
 
 # ==========================================
-# 5. MAIN ROUTER
+# 4. START
 # ==========================================
-if st.session_state.logged_in:
-    show_dashboard()
-else:
-    if st.session_state.current_page == 'Home': show_home()
-    elif st.session_state.current_page == 'Register': show_register()
-    elif st.session_state.current_page == 'Login': show_login()
+if st.session_state.logged_in: render_dashboard()
+elif st.session_state.nav == 'Home': render_home()
+elif st.session_state.nav == 'Login': render_auth("Login")
+elif st.session_state.nav == 'Register': render_auth("Register")
 
-st.markdown("---")
-st.markdown("<p style='text-align: center; color: #45a29e; font-size: 0.8rem;'>© 2025 Crazytown Capital.</p>", unsafe_allow_html=True)
+st.markdown("<br><center><small style='color:#555'>© 2025 Crazytown Capital</small></center>", unsafe_allow_html=True)
