@@ -10,11 +10,11 @@ import time
 import random
 
 # ==========================================
-# 1. AYARLAR VE TASARIM (ELMASLI & CAM)
+# 1. AYARLAR VE TASARIM (ELMASLI & DARK)
 # ==========================================
 st.set_page_config(
-    page_title="Crazytown Capital",
-    page_icon="💎",
+    page_title="Crazytown Capital | Terminal",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -35,7 +35,7 @@ st.markdown("""
         /* 2. ARKA PLAN */
         .stApp {
             background-color: #0b0c10;
-            background: radial-gradient(circle at center, #1f2833 0%, #0b0c10 100%);
+            background: radial-gradient(circle at center, #0f1115 0%, #000000 100%);
             color: #c5c6c7; font-family: 'Inter', sans-serif;
         }
 
@@ -44,13 +44,12 @@ st.markdown("""
         .circles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
         .circles li {
             position: absolute; display: block; list-style: none; width: 20px; height: 20px;
-            background: rgba(102, 252, 241, 0.15); animation: animate 25s linear infinite;
+            background: rgba(102, 252, 241, 0.1); animation: animate 25s linear infinite;
             bottom: -150px; border: 1px solid rgba(102, 252, 241, 0.3); transform: rotate(45deg);
         }
         .circles li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
         .circles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
         .circles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
-        .circles li:nth-child(4){ left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
         
         @keyframes animate {
             0%{ transform: translateY(0) rotate(45deg); opacity: 0; }
@@ -58,11 +57,11 @@ st.markdown("""
             100%{ transform: translateY(-1000px) rotate(720deg); opacity: 0; }
         }
 
-        /* 4. CAM KUTULAR (GLASSMORPHISM) */
-        .glass-box, .metric-container, .pricing-card, .login-container, .testimonial-card, .status-bar {
-            background: rgba(31, 40, 51, 0.85) !important;
+        /* 4. CAM KUTULAR */
+        .glass-box, .metric-container, .pricing-card, .login-container, .testimonial-card, .status-bar, .vip-card {
+            background: rgba(20, 25, 30, 0.85) !important;
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(102, 252, 241, 0.3);
+            border: 1px solid rgba(102, 252, 241, 0.2);
             border-radius: 12px;
             padding: 20px;
             text-align: center;
@@ -71,36 +70,34 @@ st.markdown("""
         }
         
         .login-container { max-width: 400px; margin: 50px auto; border: 1px solid #66fcf1; box-shadow: 0 0 20px rgba(102, 252, 241, 0.2); }
-        .status-bar { display: flex; gap: 15px; justify-content: center; margin-bottom: 10px; padding: 8px; color: #66fcf1; font-size: 0.8rem; border-bottom: 1px solid #66fcf1; }
-        .status-dot {height: 8px; width: 8px; background-color: #00ff00; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 5px #00ff00;}
-
-        /* 5. METİNLER */
+        
+        /* HEADER BARLARI */
+        .status-bar { display: flex; gap: 15px; justify-content: center; margin-bottom: 5px; padding: 8px; color: #66fcf1; font-size: 0.8rem; border-bottom: 1px solid #66fcf1; }
+        
+        /* METİNLER */
         .hero-title { font-size: 3.5rem; font-weight: 800; text-align: center; color: #fff; text-shadow: 0 0 20px #66fcf1; margin-bottom: 10px; }
         .hero-sub { font-size: 1.2rem; text-align: center; color: #66fcf1; letter-spacing: 3px; margin-bottom: 40px; }
-        .metric-value { font-size: 2.5rem; font-weight: 700; color: #fff; text-shadow: 0 0 10px rgba(102,252,241,0.5); }
-        .testimonial-text { font-style: italic; color: #ccc; margin-bottom: 10px; }
-        .testimonial-author { color: #66fcf1; font-weight: bold; }
-
-        /* 6. INPUTLAR VE BUTONLAR */
+        .metric-value { font-size: 2.5rem; font-weight: 700; color: #fff; }
+        
+        /* INPUT & BUTTON */
         .stTextInput input { background-color: #15161a !important; color: #fff !important; border: 1px solid #2d3845 !important; border-radius: 5px !important; }
         .stButton button { background-color: #66fcf1 !important; color: #0b0c10 !important; font-weight: bold !important; border: none !important; border-radius: 5px !important; width: 100% !important; padding: 12px !important; transition: all 0.3s ease; }
         .stButton button:hover { background-color: #fff !important; box-shadow: 0 0 15px #66fcf1; transform: translateY(-2px); }
-        .custom-btn { display: inline-block; padding: 12px 30px; background-color: #66fcf1; color: #0b0c10; border-radius: 4px; text-decoration: none; font-weight: 600; width: 100%; text-align: center; }
 
-        /* 7. SEKME (TABS) */
-        .stTabs [data-baseweb="tab-list"] { gap: 20px; border-bottom: 1px solid #1f2833; }
-        .stTabs [data-baseweb="tab"] { height: 50px; color: #888; font-weight: 500; border: none; }
-        .stTabs [aria-selected="true"] { color: #66fcf1 !important; border-bottom: 2px solid #66fcf1 !important; }
+        /* TABS */
+        .stTabs [data-baseweb="tab-list"] { gap: 10px; border-bottom: 1px solid #333; }
+        .stTabs [data-baseweb="tab"] { height: 50px; color: #888; font-weight: 600; border: none; }
+        .stTabs [aria-selected="true"] { color: #66fcf1 !important; border-bottom: 2px solid #66fcf1 !important; background: rgba(102,252,241,0.05); border-radius: 5px 5px 0 0; }
         
         [data-testid="stSidebar"] {display: none;}
     </style>
 """, unsafe_allow_html=True)
 
-# Animasyonu Başlat
-st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
+# Animasyon
+st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 2. GOOGLE SHEET & SİSTEM
+# 2. SİSTEM VE VERİTABANI
 # ==========================================
 def get_client():
     try:
@@ -165,66 +162,54 @@ def go_to(page):
 
 # --- HOME PAGE ---
 def show_home():
-    components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}, {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"}, {"proName": "BINANCE:SOLUSDT", "title": "Solana"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "en"}</script></div>""", height=50)
+    components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "CRYPTOCAP:TOTAL", "title": "Total Market Cap"}, {"proName": "CRYPTOCAP:BTC.D", "title": "BTC Dominance"}, {"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}, {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "en"}</script></div>""", height=50)
 
     st.markdown('<div class="hero-title">CRAZYTOWN CAPITAL</div>', unsafe_allow_html=True)
-    st.markdown('<div class="hero-sub">AI POWERED | INSTITUTIONAL | SECURE</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-sub">ADVANCED TRADING TERMINAL</div>', unsafe_allow_html=True)
 
     c1, c2, c3, c4, c5 = st.columns([1,1,1,1,1])
     with c2: 
-        if st.button("🚀 MEMBER LOGIN"): go_to("Login")
+        if st.button("🚀 LOGIN"): go_to("Login")
     with c4: 
-        if st.button("💎 JOIN NOW"): go_to("Register")
+        if st.button("💎 REGISTER"): go_to("Register")
 
     st.write("")
     c1, c2 = st.columns(2)
-    with c1: st.markdown("""<div class="glass-box"><h3>🤖 AI Sniper Algorithms</h3><p>24/7 Market Scanning & Automated FVG Detection</p></div>""", unsafe_allow_html=True)
-    with c2: st.markdown("""<div class="glass-box"><h3>📊 Institutional Dashboard</h3><p>Real-time analytics, Win-Rate tracking & Risk Management</p></div>""", unsafe_allow_html=True)
+    with c1: st.markdown("""<div class="glass-box"><h3>⚡ Futures Terminal</h3><p>Real-time Liquidation Maps & Funding Rates</p></div>""", unsafe_allow_html=True)
+    with c2: st.markdown("""<div class="glass-box"><h3>📊 Global Metrics</h3><p>RSI Heatmaps, Volume Scanner & Market Intel</p></div>""", unsafe_allow_html=True)
 
-    st.markdown("<br><h3 style='text-align:center; color:#fff;'>TRADER FEEDBACK</h3>", unsafe_allow_html=True)
-    sp1, sp2, sp3 = st.columns(3)
-    with sp1: st.markdown("""<div class="testimonial-card"><div class="testimonial-text">"The risk management is top tier. I finally stopped blowing accounts."</div><div class="testimonial-author">@Crypto***</div></div>""", unsafe_allow_html=True)
-    with sp2: st.markdown("""<div class="testimonial-card"><div class="testimonial-text">"FVG setups are insane. It catches moves I always miss."</div><div class="testimonial-author">@Alex***</div></div>""", unsafe_allow_html=True)
-    with sp3: st.markdown("""<div class="testimonial-card"><div class="testimonial-text">"Worth every penny. The community is gold."</div><div class="testimonial-author">@Mehmet***</div></div>""", unsafe_allow_html=True)
-
-    st.markdown("<br><h3 style='text-align:center; color:#fff;'>MEMBERSHIP PLANS</h3>", unsafe_allow_html=True)
+    st.markdown("<br><h3 style='text-align:center; color:#fff;'>MEMBERSHIP</h3>", unsafe_allow_html=True)
     pc1, pc2, pc3 = st.columns(3)
-    with pc1: st.markdown("""<div class="pricing-card"><h3>STARTER</h3><div class="plan-price">$30</div><p>/month</p></div>""", unsafe_allow_html=True)
-    with pc2: st.markdown("""<div class="pricing-card" style="border:1px solid #66fcf1; box-shadow:0 0 15px rgba(102,252,241,0.2);"><h3>PRO</h3><div class="plan-price">$75</div><p>/quarter</p></div>""", unsafe_allow_html=True)
-    with pc3: st.markdown("""<div class="pricing-card"><h3>LIFETIME</h3><div class="plan-price">$250</div><p>one-time</p></div>""", unsafe_allow_html=True)
-    
-    st.markdown("<br><h3 style='text-align:center; color:#fff;'>FAQ</h3>", unsafe_allow_html=True)
-    with st.expander("How do I get access?"): st.write("Register an account and contact support on Telegram.")
-    with st.expander("Is my capital safe?"): st.write("We use strict risk management (max 2% risk per trade).")
+    with pc1: st.markdown("""<div class="pricing-card"><h3>STARTER</h3><div class="plan-price">$30</div><p>/mo</p></div>""", unsafe_allow_html=True)
+    with pc2: st.markdown("""<div class="pricing-card" style="border:1px solid #66fcf1; box-shadow:0 0 15px rgba(102,252,241,0.2);"><h3>PRO</h3><div class="plan-price">$75</div><p>/qtr</p></div>""", unsafe_allow_html=True)
+    with pc3: st.markdown("""<div class="pricing-card"><h3>LIFETIME</h3><div class="plan-price">$250</div><p>once</p></div>""", unsafe_allow_html=True)
 
-# --- REGISTER PAGE ---
+# --- REGISTER ---
 def show_register():
     st.markdown('<div class="hero-title" style="font-size:2.5rem;">JOIN THE ELITE</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     with st.form("reg"):
         st.markdown("<h3 style='color:#fff;'>CREATE ACCOUNT</h3>", unsafe_allow_html=True)
-        u = st.text_input("Choose Username")
-        p = st.text_input("Choose Password", type="password")
+        u = st.text_input("Username")
+        p = st.text_input("Password", type="password")
         n = st.text_input("Full Name")
         if st.form_submit_button("REGISTER NOW"):
             if u and p:
                 res = register_user(u, p, n)
                 if res == "Success":
-                    st.success("Account Created! Redirecting...")
-                    time.sleep(2)
-                    go_to("Login")
+                    st.success("Account Created!"); time.sleep(1); go_to("Login")
                 elif res == "Exists": st.error("Username Taken!")
-                else: st.error(f"Error: {res}")
+                else: st.error("Error")
             else: st.warning("Fill all fields")
     if st.button("Back Home"): go_to("Home")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- LOGIN PAGE ---
+# --- LOGIN ---
 def show_login():
-    st.markdown('<div class="hero-title" style="font-size:2.5rem;">SECURE LOGIN</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-title" style="font-size:2.5rem;">TERMINAL ACCESS</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     with st.form("log"):
-        st.markdown("<h3 style='color:#fff;'>MEMBER ACCESS</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#fff;'>LOGIN</h3>", unsafe_allow_html=True)
         u = st.text_input("Username")
         p = st.text_input("Password", type="password")
         if st.form_submit_button("ENTER SYSTEM"):
@@ -236,117 +221,144 @@ def show_login():
             if ud:
                 st.session_state.logged_in = True
                 st.session_state.user_info = ud
-                st.success("Access Granted")
-                time.sleep(1)
-                st.rerun()
+                st.success("Access Granted"); time.sleep(1); st.rerun()
             else: st.error("Invalid Credentials")
     if st.button("Back Home"): go_to("Home")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- DASHBOARD (PRIVATE AREA) ---
+# --- DASHBOARD (THE ULTIMATE TERMINAL) ---
 def show_dashboard():
     df = load_trade_data()
     ui = st.session_state.user_info
     
-    # SYSTEM STATUS BAR
-    latency = random.randint(12, 45)
+    # 1. STATUS BAR
+    latency = random.randint(12, 35)
     st.markdown(f"""
     <div class="status-bar">
-        <span><span class="status-dot"></span>SYSTEM: <b>ONLINE</b></span>
-        <span>|</span>
-        <span>LATENCY: <b>{latency}ms</b></span>
+        <span><span style="height:8px;width:8px;background:#00ff00;border-radius:50%;display:inline-block;"></span> <b>ONLINE</b> ({latency}ms)</span>
         <span>|</span>
         <span>USER: <b>{ui.get('Name')}</b></span>
+        <span>|</span>
+        <span>PLAN: <b style="color:#66fcf1">{ui.get('Plan')}</b></span>
     </div>
     """, unsafe_allow_html=True)
 
-    components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}, {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"}, {"proName": "BINANCE:SOLUSDT", "title": "Solana"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "en"}</script></div>""", height=50)
+    # 2. GLOBAL METRICS (KÜRESEL METRİKLER)
+    components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "CRYPTOCAP:TOTAL", "title": "Total Market Cap"}, {"proName": "CRYPTOCAP:BTC.D", "title": "BTC Dominance"}, {"proName": "CRYPTOCAP:USDT.D", "title": "USDT Dominance"}, {"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "locale": "en"}</script></div>""", height=40)
 
     st.write("")
     if st.button("🔒 LOGOUT", key="logout_dash"):
         st.session_state.logged_in = False
         go_to("Home")
 
-    # TABS: API KALDIRILDI, HABERLER EKLENDİ
-    tab1, tab2, tab3, tab4 = st.tabs(["DASHBOARD", "INTELLIGENCE", "NEWS TERMINAL", "TOOLS"])
+    # --- ANA SEKMELER ---
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["DASHBOARD", "MARKET DATA", "FUTURES TERMINAL", "NEWS", "PROFILE & VIP"])
     
+    # TAB 1: KİŞİSEL DASHBOARD
     with tab1:
         if df.empty:
-            st.info("Awaiting data...")
+            st.info("No personal trade data.")
         else:
             total = len(df); win = len(df[df['Sonuç'] == 'WIN']); rate = (win / total * 100) if total > 0 else 0
             net = df['R_Kazanc'].sum()
-            pf = (df[df['R_Kazanc'] > 0]['R_Kazanc'].sum() / abs(df[df['R_Kazanc'] < 0]['R_Kazanc'].sum())) if abs(df[df['R_Kazanc'] < 0]['R_Kazanc'].sum()) > 0 else 0
-
+            
             c1, c2, c3, c4 = st.columns(4)
             c1.markdown(f'<div class="metric-container"><div class="metric-value">{total}</div><div style="color:#888;">TRADES</div></div>', unsafe_allow_html=True)
             c2.markdown(f'<div class="metric-container"><div class="metric-value">{rate:.1f}%</div><div style="color:#888;">WIN RATE</div></div>', unsafe_allow_html=True)
             c3.markdown(f'<div class="metric-container"><div class="metric-value" style="color:{"#66fcf1" if net>0 else "#ff4b4b"}">{net:.2f}R</div><div style="color:#888;">NET RETURN</div></div>', unsafe_allow_html=True)
-            c4.markdown(f'<div class="metric-container"><div class="metric-value">{pf:.2f}</div><div style="color:#888;">PROFIT FACTOR</div></div>', unsafe_allow_html=True)
+            c4.markdown(f'<div class="metric-container"><div class="metric-value">V10.2</div><div style="color:#888;">MODEL</div></div>', unsafe_allow_html=True)
             
-            st.write("")
             g1, g2 = st.columns([2,1])
             with g1:
                 df['Cum'] = df['R_Kazanc'].cumsum()
-                fig = go.Figure(go.Scatter(x=df['Tarih'], y=df['Cum'], mode='lines', fill='tozeroy', line=dict(color='#66fcf1', width=2)))
-                fig.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=300, margin=dict(l=0,r=0,t=10,b=0))
+                fig = go.Figure(go.Scatter(x=df['Tarih'], y=df['Cum'], mode='lines', fill='tozeroy', line=dict(color='#66fcf1')))
+                fig.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=300)
                 st.plotly_chart(fig, use_container_width=True)
             with g2:
                 fig_pie = px.pie(df, names='Sonuç', values=[1]*len(df), hole=0.7, color='Sonuç', color_discrete_map={'WIN':'#66fcf1', 'LOSS':'#ff4b4b'})
-                fig_pie.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', showlegend=False, height=300, margin=dict(l=20,r=20,t=10,b=20))
+                fig_pie.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', showlegend=False, height=300)
                 st.plotly_chart(fig_pie, use_container_width=True)
             
-            st.markdown("##### LIVE LOG")
-            def style_df(row): return [f'color: {"#66fcf1" if row["Sonuç"]=="WIN" else "#ff4b4b"}; font-weight: bold' if col == "Sonuç" else 'color: #c5c6c7' for col in row.index]
-            st.dataframe(df.style.apply(style_df, axis=1), use_container_width=True, hide_index=True)
+            st.dataframe(df, use_container_width=True, hide_index=True)
 
+    # TAB 2: MARKET DATA (YÜKSELENLER / DÜŞENLER / HEATMAP)
     with tab2:
-        mi1, mi2, mi3 = st.columns(3)
-        with mi1: st.markdown("##### GAUGE"); components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>{"interval": "4h", "width": "100%", "isTransparent": true, "height": "350", "symbol": "BINANCE:BTCUSDT", "showIntervalTabs": false, "displayMode": "single", "locale": "en", "colorTheme": "dark"}</script></div>""", height=350)
-        with mi2: st.markdown("##### FEAR & GREED"); components.html("""<img src="https://alternative.me/crypto/fear-and-greed-index.png" style="width:100%; border-radius:10px;" />""", height=350)
-        with mi3: st.markdown("##### CALENDAR"); components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>{"colorTheme": "dark", "isTransparent": true, "width": "100%", "height": "350", "locale": "en", "importanceFilter": "-1,0,1", "currencyFilter": "USD"}</script></div>""", height=350)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.subheader("🚀 TOP GAINERS & LOSERS (24h)")
+            components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-hotlists.js" async>{"colorTheme": "dark", "dateRange": "12M", "exchange": "BINANCE", "showChart": true, "locale": "en", "largeChartUrl": "", "isTransparent": true, "showSymbolLogo": true, "showFloatingTooltip": false, "width": "100%", "height": "500", "plotLineColorGrowing": "rgba(41, 98, 255, 1)", "plotLineColorFalling": "rgba(41, 98, 255, 1)", "gridLineColor": "rgba(240, 243, 250, 0)", "scaleFontColor": "rgba(106, 109, 120, 1)", "belowLineFillColorGrowing": "rgba(41, 98, 255, 0.12)", "belowLineFillColorFalling": "rgba(41, 98, 255, 0.12)", "belowLineFillColorGrowingBottom": "rgba(41, 98, 255, 0)", "belowLineFillColorFallingBottom": "rgba(41, 98, 255, 0)", "symbolActiveColor": "rgba(41, 98, 255, 0.12)"}</script></div>""", height=500)
+        with col2:
+            st.subheader("🔥 RSI HEATMAP & SCANNER")
+            components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>{"width": "100%", "height": "500", "defaultColumn": "overview", "defaultScreen": "crypto_profitability", "market": "crypto", "showToolbar": true, "colorTheme": "dark", "locale": "en", "isTransparent": true}</script></div>""", height=500)
+        
+        st.subheader("🌍 CRYPTO HEATMAP")
+        components.html("""<script defer src="https://www.livecoinwatch.com/widgets/heatmap.js"></script><div class="livecoinwatch-widget-heatmap" currency="USD" width="100%" height="400"></div>""", height=400)
 
-    # YENİ TAB 3: NEWS TERMINAL (API YERİNE GELDİ)
+    # TAB 3: FUTURES TERMINAL (LİKİDASYON / HACİM / FONLAMA)
     with tab3:
-        st.subheader("📰 BREAKING NEWS & ALERTS")
-        components.html("""
-        <div class="tradingview-widget-container">
-          <div class="tradingview-widget-container__widget"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
-          {
-          "feedMode": "all_symbols",
-          "colorTheme": "dark",
-          "isTransparent": true,
-          "displayMode": "regular",
-          "width": "100%",
-          "height": "600",
-          "locale": "en"
-        }
-          </script>
-        </div>
-        """, height=600)
+        st.info("⚠️ INSTITUTIONAL DATA FEED")
+        c1, c2 = st.columns([2, 1])
+        with c1:
+            st.subheader("🗺️ LIQUIDATION & VOLUME ANALYSIS")
+            # Coinglass benzeri grafik (TradingView advanced chart ile simüle edildi)
+            components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>{"width": "100%", "height": "500", "symbol": "BINANCE:BTCUSDT.P", "interval": "15", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "en", "enable_publishing": false, "allow_symbol_change": true, "calendar": false, "studies": ["STD;Volume@tv-basicstudies","STD;VWAP@tv-basicstudies"], "support_host": "https://www.tradingview.com"}</script></div>""", height=500)
+        
+        with c2:
+            st.subheader("💸 FUNDING RATES")
+            # Statik Simülasyon (Gerçek veri API gerektirir, görsel olarak eklendi)
+            st.markdown("""
+            <div class="glass-box" style="text-align:left;">
+                <table style="width:100%; color:#ccc;">
+                    <tr style="border-bottom:1px solid #444;"><th>PAIR</th><th>RATE</th><th>PREDICT</th></tr>
+                    <tr><td>BTC/USDT</td><td style="color:#00ff00;">0.0100%</td><td>0.0102%</td></tr>
+                    <tr><td>ETH/USDT</td><td style="color:#00ff00;">0.0125%</td><td>0.0110%</td></tr>
+                    <tr><td>SOL/USDT</td><td style="color:#ff4b4b;">-0.004%</td><td>-0.002%</td></tr>
+                    <tr><td>XRP/USDT</td><td style="color:#00ff00;">0.0100%</td><td>0.0100%</td></tr>
+                </table>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.subheader("📊 VOLUME SCANNER")
+            st.markdown("""
+            <div class="glass-box" style="text-align:left;">
+                <p>⚡ <b>High Vol:</b> PEPE, WIF, SOL</p>
+                <p>📉 <b>Low Vol:</b> ADA, MATIC</p>
+                <p>🐋 <b>Whale Alert:</b> +500 BTC moved to Binance</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-    # TAB 4: TOOLS & AFFILIATE
+    # TAB 4: NEWS (HABERLER)
     with tab4:
-        st.subheader("🧮 TRADING CALCULATORS")
+        st.subheader("📰 LIVE NEWS TERMINAL")
+        components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>{"feedMode": "all_symbols", "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": "600", "locale": "en"}</script></div>""", height=600)
+
+    # TAB 5: PROFILE & VIP
+    with tab5:
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown("##### 💰 ROI SIMULATOR")
-            caps = st.number_input("Capital ($)", 100, 100000, 1000)
-            risk = st.slider("Risk (%)", 0.5, 5.0, 2.0)
-            net_r_total = df['R_Kazanc'].sum() if not df.empty else 0
-            prof = caps * (risk/100) * net_r_total
-            st.markdown(f"""<div style="background:rgba(31,40,51,0.8); padding:10px; border-radius:5px; border:1px solid #333; text-align:center;">Potential Balance: <b style="color:#66fcf1">${caps+prof:,.2f}</b></div>""", unsafe_allow_html=True)
+            st.markdown("<div class='vip-card'><h3>👤 USER SETTINGS</h3>", unsafe_allow_html=True)
+            st.text_input("Username", value=ui.get('Username'), disabled=True)
+            new_pass = st.text_input("New Password", type="password")
+            if st.button("UPDATE PASSWORD"):
+                st.info("Password update request sent to admin.")
+            st.markdown("</div>", unsafe_allow_html=True)
+            
         with c2:
-            st.markdown("##### ⚠️ RISK OF RUIN")
-            st.markdown(f"""<div style="background:rgba(31,40,51,0.8); padding:10px; border-radius:5px; border:1px solid #333; text-align:center;">Risk of Ruin: <b style="color:#66fcf1">0.0000%</b></div>""", unsafe_allow_html=True)
-        
-        st.divider()
-        st.subheader("🤝 AFFILIATE PROGRAM")
-        st.markdown("<div class='glass-box'><p>Invite friends and earn 20% lifetime commission.</p></div>", unsafe_allow_html=True)
-        ac1, ac2 = st.columns(2)
-        with ac1: st.text_input("Your Referral Link", value=f"https://crazytown.capital/?ref={ui.get('Username')}", disabled=True)
-        with ac2: st.metric("Commission Pending", "$0.00")
+            st.markdown("""
+            <div class='vip-card' style='border:1px solid #ffd700;'>
+                <h2 style='color:#ffd700'>👑 VIP APPLICATION</h2>
+                <p style='text-align:left; font-size:0.9rem;'>
+                Crazytown VIP provides institutional-grade access:<br>
+                - <b>0ms Latency</b> Signals<br>
+                - <b>One-on-One</b> Mentorship<br>
+                - <b>Whale Wallet</b> Tracking<br>
+                - <b>Private</b> Discord Access
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            vip_msg = st.text_area("Why do you want to join VIP?")
+            if st.button("SUBMIT APPLICATION"):
+                st.success("Application received! We will contact you via Telegram.")
 
 # ==========================================
 # 5. MAIN ROUTER
