@@ -10,10 +10,10 @@ import time
 import random
 
 # ==========================================
-# 1. AYARLAR VE CSS (V401)
+# 1. AYARLAR VE CSS (V500 MASTER DESIGN)
 # ==========================================
 st.set_page_config(
-    page_title="Crazytown Capital | Enterprise Terminal",
+    page_title="Crazytown Capital | Pro Terminal",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -58,7 +58,7 @@ st.markdown("""
         }
 
         /* 4. CAM KUTULAR (GLASSMORPHISM) */
-        .glass-box, .metric-container, .pricing-card, .login-container, .testimonial-card, .status-bar, .vip-card, .payment-card {
+        .glass-box, .metric-container, .pricing-card, .login-container, .testimonial-card, .status-bar, .vip-card, .payment-card, .academy-card {
             background: rgba(20, 25, 30, 0.85) !important;
             backdrop-filter: blur(15px);
             border: 1px solid rgba(102, 252, 241, 0.2);
@@ -72,11 +72,7 @@ st.markdown("""
         .payment-card { border: 1px solid #ffd700; background: rgba(255, 215, 0, 0.05) !important; }
         .login-container { max-width: 400px; margin: 60px auto; border: 1px solid #66fcf1; box-shadow: 0 0 30px rgba(102, 252, 241, 0.15); }
         .status-bar { display: flex; gap: 15px; justify-content: center; margin-bottom: 5px; padding: 8px; color: #66fcf1; font-size: 0.8rem; border-bottom: 1px solid #66fcf1; }
-
-        /* FİYAT KARTLARI (ÖZEL) */
-        .pricing-card h3 { color: #66fcf1; letter-spacing: 2px; }
-        .pricing-card .price { font-size: 2.5rem; color: #fff; font-weight: bold; margin: 10px 0; }
-        .pricing-card.featured { border: 1px solid #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+        .academy-card { text-align: left; border-left: 4px solid #66fcf1; }
 
         /* METİNLER VE INPUTLAR */
         .hero-title { font-size: 3.5rem; font-weight: 800; text-align: center; color: #fff; text-shadow: 0 0 20px #66fcf1; margin-bottom: 10px; }
@@ -181,10 +177,10 @@ def show_home():
     with c1: st.markdown("""<div class="glass-box"><h3>⚡ AI Sniper</h3><p>Real-time FVG Detection & Auto-Execution</p></div>""", unsafe_allow_html=True)
     with c2: st.markdown("""<div class="glass-box"><h3>🐋 Whale Hunter</h3><p>Track large institutional money flow live</p></div>""", unsafe_allow_html=True)
 
-    st.markdown("<br><h3 style='text-align:center; color:#fff;'>CHOOSE YOUR PLAN</h3>", unsafe_allow_html=True)
+    st.markdown("<br><h3 style='text-align:center; color:#fff;'>MEMBERSHIP</h3>", unsafe_allow_html=True)
     pc1, pc2, pc3 = st.columns(3)
     with pc1: st.markdown("""<div class="pricing-card"><h3>STARTER</h3><div class="price">$30</div><p>/mo</p></div>""", unsafe_allow_html=True)
-    with pc2: st.markdown("""<div class="pricing-card featured"><h3>VIP</h3><div class="price">$75</div><p>/qtr</p></div>""", unsafe_allow_html=True)
+    with pc2: st.markdown("""<div class="pricing-card" style="border:1px solid #66fcf1; box-shadow:0 0 15px rgba(102,252,241,0.2);"><h3>PRO</h3><div class="price">$75</div><p>/qtr</p></div>""", unsafe_allow_html=True)
     with pc3: st.markdown("""<div class="pricing-card"><h3>LIFETIME</h3><div class="price">$250</div><p>once</p></div>""", unsafe_allow_html=True)
 
 # --- REGISTER ---
@@ -254,8 +250,8 @@ def show_dashboard():
         st.session_state.logged_in = False
         go_to("Home")
 
-    # --- ANA SEKMELER ---
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["DASHBOARD", "MARKET TERMINAL", "INTEL & WHALES", "TOOLS & CALC", "VIP OFFICE"])
+    # --- ANA SEKMELER (V500 - YENİ ÖZELLİKLERLE) ---
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 DASHBOARD", "📡 SCANNER & BUBBLES", "🎓 ACADEMY", "🧮 TOOLS", "👑 VIP OFFICE"])
     
     # TAB 1: DASHBOARD
     with tab1:
@@ -264,7 +260,6 @@ def show_dashboard():
         else:
             total = len(df); win = len(df[df['Sonuç'] == 'WIN']); rate = (win / total * 100) if total > 0 else 0
             net = df['R_Kazanc'].sum()
-            # Max Drawdown Hesabı
             df['Cum'] = df['R_Kazanc'].cumsum()
             df['Peak'] = df['Cum'].cummax()
             df['Drawdown'] = df['Cum'] - df['Peak']
@@ -287,40 +282,60 @@ def show_dashboard():
                 st.plotly_chart(fig_pie, use_container_width=True)
             st.dataframe(df, use_container_width=True, hide_index=True)
 
-    # TAB 2: MARKET TERMINAL
+    # TAB 2: SCANNER & BUBBLES (YENİ PROFESYONEL ÖZELLİKLER)
     with tab2:
-        col1, col2 = st.columns(2)
-        with col1:
-            st.subheader("🚀 TOP GAINERS")
-            components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-hotlists.js" async>{"colorTheme": "dark", "dateRange": "12M", "exchange": "BINANCE", "showChart": true, "locale": "en", "largeChartUrl": "", "isTransparent": true, "showSymbolLogo": true, "showFloatingTooltip": false, "width": "100%", "height": "500", "plotLineColorGrowing": "rgba(41, 98, 255, 1)", "plotLineColorFalling": "rgba(41, 98, 255, 1)", "gridLineColor": "rgba(240, 243, 250, 0)", "scaleFontColor": "rgba(106, 109, 120, 1)", "belowLineFillColorGrowing": "rgba(41, 98, 255, 0.12)", "belowLineFillColorFalling": "rgba(41, 98, 255, 0.12)", "belowLineFillColorGrowingBottom": "rgba(41, 98, 255, 0)", "belowLineFillColorFallingBottom": "rgba(41, 98, 255, 0)", "symbolActiveColor": "rgba(41, 98, 255, 0.12)"}</script></div>""", height=500)
-        with col2:
-            st.subheader("🗺️ LIQUIDATION HEATMAP")
-            components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>{"width": "100%", "height": "500", "symbol": "BINANCE:BTCUSDT.P", "interval": "15", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "en", "enable_publishing": false, "allow_symbol_change": true, "calendar": false, "studies": ["STD;Volume@tv-basicstudies","STD;VWAP@tv-basicstudies"], "support_host": "https://www.tradingview.com"}</script></div>""", height=500)
+        st.subheader("🫧 MARKET BUBBLES")
+        # TradingView "Market Overview" ile Baloncuk efekti benzeri bir görünüm
+        components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-hotlists.js" async>{"colorTheme": "dark", "dateRange": "12M", "exchange": "BINANCE", "showChart": true, "locale": "en", "largeChartUrl": "", "isTransparent": true, "showSymbolLogo": true, "showFloatingTooltip": false, "width": "100%", "height": "500", "plotLineColorGrowing": "rgba(41, 98, 255, 1)", "plotLineColorFalling": "rgba(41, 98, 255, 1)", "gridLineColor": "rgba(240, 243, 250, 0)", "scaleFontColor": "rgba(106, 109, 120, 1)", "belowLineFillColorGrowing": "rgba(41, 98, 255, 0.12)", "belowLineFillColorFalling": "rgba(41, 98, 255, 0.12)", "belowLineFillColorGrowingBottom": "rgba(41, 98, 255, 0)", "belowLineFillColorFallingBottom": "rgba(41, 98, 255, 0)", "symbolActiveColor": "rgba(41, 98, 255, 0.12)"}</script></div>""", height=500)
         
-        st.subheader("🔥 RSI HEATMAP")
-        components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>{"width": "100%", "height": "500", "defaultColumn": "overview", "defaultScreen": "crypto_profitability", "market": "crypto", "showToolbar": true, "colorTheme": "dark", "locale": "en", "isTransparent": true}</script></div>""", height=500)
+        st.write("")
+        st.subheader("🔍 CRYPTO SCREENER (TARAYICI)")
+        st.info("💡 Filtreleri kullanarak 'Aşırı Satım' (Oversold) veya 'Patlamaya Hazır' coinleri bulun.")
+        components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>{"width": "100%", "height": "600", "defaultColumn": "overview", "defaultScreen": "crypto_profitability", "market": "crypto", "showToolbar": true, "colorTheme": "dark", "locale": "en", "isTransparent": true}</script></div>""", height=600)
 
-    # TAB 3: INTEL & WHALES
+        st.subheader("📰 LIVE NEWS & LIQUIDATION")
+        c1, c2 = st.columns(2)
+        with c1:
+             components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>{"feedMode": "all_symbols", "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": "500", "locale": "en"}</script></div>""", height=500)
+        with c2:
+             components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>{"width": "100%", "height": "500", "symbol": "BINANCE:BTCUSDT.P", "interval": "15", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "en", "enable_publishing": false, "allow_symbol_change": true, "calendar": false, "studies": ["STD;Volume@tv-basicstudies"], "support_host": "https://www.tradingview.com"}</script></div>""", height=500)
+
+    # TAB 3: ACADEMY (EĞİTİM MERKEZİ - YENİ)
     with tab3:
-        st.subheader("🐋 WHALE ALERTS & NEWS")
-        col1, col2 = st.columns([1, 2])
-        with col1:
+        st.markdown("<h2 style='color:#fff;'>🎓 CRAZYTOWN ACADEMY</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='color:#888;'>Master the markets with institutional knowledge.</p>", unsafe_allow_html=True)
+        
+        ac1, ac2 = st.columns(2)
+        with ac1:
             st.markdown("""
-            <div class="glass-box" style="text-align:left;">
-                <h4>🚨 WHALE MOVEMENT</h4>
-                <p style="border-bottom:1px solid #333; padding:5px;">🐋 <b>5,000 ETH</b> ($15M) moved to Binance</p>
-                <p style="border-bottom:1px solid #333; padding:5px;">🐋 <b>120 BTC</b> moved from Coinbase to Unknown</p>
-                <p style="border-bottom:1px solid #333; padding:5px;">🔥 <b>$50M USDT</b> minted at Tether Treasury</p>
-                <p style="padding:5px;">🐋 <b>2,000,000 XRP</b> moved to Bithumb</p>
-            </div>
-            <div class="glass-box">
-                <h4>📅 ECONOMIC CALENDAR</h4>
-                <p>🇺🇸 <b>FOMC Meeting:</b> 2 Days left</p>
-                <p>🇺🇸 <b>CPI Data:</b> 14 Days left</p>
+            <div class="academy-card">
+                <h3 style="color:#fff;">📘 TRADING 101</h3>
+                <p style="color:#ccc;">Temel borsa kavramları, mum formasyonları ve piyasa döngüleri.</p>
+                <button style="background:#1f2833; color:#66fcf1; border:1px solid #66fcf1; padding:5px; border-radius:4px; width:100px;">READ NOW</button>
             </div>
             """, unsafe_allow_html=True)
-        with col2:
-            components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>{"feedMode": "all_symbols", "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": "600", "locale": "en"}</script></div>""", height=600)
+            st.markdown("""
+            <div class="academy-card">
+                <h3 style="color:#fff;">🧠 PSYCHOLOGY</h3>
+                <p style="color:#ccc;">FOMO yönetimi, risk psikolojisi ve trader zihniyeti.</p>
+                <button style="background:#1f2833; color:#66fcf1; border:1px solid #66fcf1; padding:5px; border-radius:4px; width:100px;">READ NOW</button>
+            </div>
+            """, unsafe_allow_html=True)
+        with ac2:
+            st.markdown("""
+            <div class="academy-card">
+                <h3 style="color:#fff;">🐋 WHALE TRACKING</h3>
+                <p style="color:#ccc;">On-chain verileri okuma ve balina hareketlerini takip etme.</p>
+                <button style="background:#1f2833; color:#66fcf1; border:1px solid #66fcf1; padding:5px; border-radius:4px; width:100px;">READ NOW</button>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown("""
+            <div class="academy-card">
+                <h3 style="color:#fff;">⚡ SMC & PRICE ACTION</h3>
+                <p style="color:#ccc;">Likidite konseptleri, FVG ve Order Block stratejileri.</p>
+                <button style="background:#1f2833; color:#66fcf1; border:1px solid #66fcf1; padding:5px; border-radius:4px; width:100px;">READ NOW</button>
+            </div>
+            """, unsafe_allow_html=True)
 
     # TAB 4: TOOLS & CALC
     with tab4:
@@ -353,11 +368,10 @@ def show_dashboard():
         with ac1: st.text_input("Referral Link", value=f"https://crazytown.capital/?ref={ui.get('Username')}", disabled=True)
         with ac2: st.metric("Pending Commission", "$0.00")
 
-    # TAB 5: VIP OFFICE (GÜNCELLENMİŞ SATIŞ ALANI)
+    # TAB 5: VIP OFFICE
     with tab5:
         st.markdown("<h2 style='text-align:center; color:#fff;'>UPGRADE MEMBERSHIP</h2>", unsafe_allow_html=True)
         
-        # 1. PAKETLERİ GÖSTER
         pc1, pc2, pc3 = st.columns(3)
         with pc1:
             st.markdown("""
@@ -401,7 +415,6 @@ def show_dashboard():
         st.write("")
         st.write("")
 
-        # 2. ÖDEME YÖNTEMLERİ
         c1, c2 = st.columns([1, 2])
         with c1:
             with st.expander("👤 USER SETTINGS", expanded=True):
@@ -417,17 +430,14 @@ def show_dashboard():
             <div class='payment-card'>
                 <h3 style='color:#ffd700; margin-top:0;'>💳 PAYMENT DETAILS</h3>
                 <p style="color:#ccc;">To upgrade, send the amount to one of the addresses below and click 'Confirm Payment'.</p>
-                
                 <div style='text-align:left; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; margin-bottom:10px;'>
                     <span style="color:#26a17b; font-weight:bold;">USDT (TRC20):</span><br>
                     <code style='color:#fff; font-size:1rem;'>TL8w... (SENİN_ADRESİN)</code>
                 </div>
-                
                 <div style='text-align:left; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; margin-bottom:10px;'>
                     <span style="color:#f2a900; font-weight:bold;">BITCOIN (BTC):</span><br>
                     <code style='color:#fff; font-size:1rem;'>1A1z... (SENİN_ADRESİN)</code>
                 </div>
-                
                 <div style='text-align:left; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; margin-bottom:10px;'>
                     <span style="color:#fff; font-weight:bold;">IBAN (Bank Transfer):</span><br>
                     <code style='color:#fff; font-size:1rem;'>TR12 0000... (SENİN_IBANIN)</code>
@@ -435,7 +445,6 @@ def show_dashboard():
             </div>
             """, unsafe_allow_html=True)
             
-            # Ödeme Onay Formu
             selected_plan = st.selectbox("Select Plan Paid For", ["Starter ($30)", "VIP ($75)", "Lifetime ($250)"])
             tx_id = st.text_input("Transaction ID (Hash) / Sender Name")
             if st.button("✅ CONFIRM PAYMENT"):
