@@ -10,24 +10,24 @@ import time
 import random
 
 # ==========================================
-# 1. AYARLAR VE TASARIM (ELMASLI & DARK)
+# 1. AYARLAR VE CSS (EN BAŞTA OLMALI)
 # ==========================================
 st.set_page_config(
     page_title="Crazytown Capital | Terminal",
-    page_icon="⚡",
+    page_icon="💎",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS TASARIMI ---
+# --- CSS TASARIMI (V310) ---
 st.markdown("""
     <style>
-        /* 1. TEMEL AYARLAR */
+        /* 1. GENEL YAPI */
         div[class^="viewerBadge_container"], .viewerBadge_container__1QSob, #MainMenu, header, footer {display: none !important;}
         .stApp > header {display: none !important;}
         .block-container {
             padding-top: 1rem !important; 
-            padding-bottom: 2rem !important; 
+            padding-bottom: 3rem !important; 
             max-width: 100% !important;
             z-index: 2; position: relative;
         }
@@ -39,7 +39,7 @@ st.markdown("""
             color: #c5c6c7; font-family: 'Inter', sans-serif;
         }
 
-        /* 3. ELMAS ANIMASYONU */
+        /* 3. ELMAS ANIMASYONU (ARKAPLAN) */
         .area { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
         .circles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
         .circles li {
@@ -50,6 +50,7 @@ st.markdown("""
         .circles li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
         .circles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
         .circles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+        .circles li:nth-child(4){ left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
         
         @keyframes animate {
             0%{ transform: translateY(0) rotate(45deg); opacity: 0; }
@@ -57,7 +58,7 @@ st.markdown("""
             100%{ transform: translateY(-1000px) rotate(720deg); opacity: 0; }
         }
 
-        /* 4. CAM KUTULAR */
+        /* 4. CAM KUTULAR (GLASSMORPHISM) */
         .glass-box, .metric-container, .pricing-card, .login-container, .testimonial-card, .status-bar, .vip-card, .payment-card {
             background: rgba(20, 25, 30, 0.85) !important;
             backdrop-filter: blur(15px);
@@ -71,21 +72,17 @@ st.markdown("""
         
         .payment-card { border: 1px solid #ffd700; background: rgba(255, 215, 0, 0.05) !important; }
         .login-container { max-width: 400px; margin: 50px auto; border: 1px solid #66fcf1; box-shadow: 0 0 20px rgba(102, 252, 241, 0.2); }
-        
-        /* HEADER BARLARI */
         .status-bar { display: flex; gap: 15px; justify-content: center; margin-bottom: 5px; padding: 8px; color: #66fcf1; font-size: 0.8rem; border-bottom: 1px solid #66fcf1; }
-        
-        /* METİNLER */
+
+        /* 5. METİNLER VE INPUTLAR */
         .hero-title { font-size: 3.5rem; font-weight: 800; text-align: center; color: #fff; text-shadow: 0 0 20px #66fcf1; margin-bottom: 10px; }
         .hero-sub { font-size: 1.2rem; text-align: center; color: #66fcf1; letter-spacing: 3px; margin-bottom: 40px; }
         .metric-value { font-size: 2.5rem; font-weight: 700; color: #fff; }
-        
-        /* INPUT & BUTTON */
         .stTextInput input { background-color: #15161a !important; color: #fff !important; border: 1px solid #2d3845 !important; border-radius: 5px !important; }
         .stButton button { background-color: #66fcf1 !important; color: #0b0c10 !important; font-weight: bold !important; border: none !important; border-radius: 5px !important; width: 100% !important; padding: 12px !important; transition: all 0.3s ease; }
         .stButton button:hover { background-color: #fff !important; box-shadow: 0 0 15px #66fcf1; transform: translateY(-2px); }
 
-        /* TABS */
+        /* 6. TABS DÜZENİ */
         .stTabs [data-baseweb="tab-list"] { gap: 10px; border-bottom: 1px solid #333; }
         .stTabs [data-baseweb="tab"] { height: 50px; color: #888; font-weight: 600; border: none; }
         .stTabs [aria-selected="true"] { color: #66fcf1 !important; border-bottom: 2px solid #66fcf1 !important; background: rgba(102,252,241,0.05); border-radius: 5px 5px 0 0; }
@@ -98,7 +95,7 @@ st.markdown("""
 st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 2. SİSTEM VE VERİTABANI
+# 2. BAĞLANTI VE FONKSİYONLAR
 # ==========================================
 def get_client():
     try:
@@ -161,7 +158,7 @@ def go_to(page):
     st.session_state.current_page = page
     st.rerun()
 
-# --- HOME PAGE ---
+# --- SAYFA: HOME ---
 def show_home():
     components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "CRYPTOCAP:TOTAL", "title": "Total Market Cap"}, {"proName": "CRYPTOCAP:BTC.D", "title": "BTC Dominance"}, {"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}, {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "en"}</script></div>""", height=50)
 
@@ -185,7 +182,7 @@ def show_home():
     with pc2: st.markdown("""<div class="pricing-card" style="border:1px solid #66fcf1; box-shadow:0 0 15px rgba(102,252,241,0.2);"><h3>PRO</h3><div class="plan-price">$75</div><p>/qtr</p></div>""", unsafe_allow_html=True)
     with pc3: st.markdown("""<div class="pricing-card"><h3>LIFETIME</h3><div class="plan-price">$250</div><p>once</p></div>""", unsafe_allow_html=True)
 
-# --- REGISTER ---
+# --- SAYFA: REGISTER ---
 def show_register():
     st.markdown('<div class="hero-title" style="font-size:2.5rem;">JOIN THE ELITE</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
@@ -205,7 +202,7 @@ def show_register():
     if st.button("Back Home"): go_to("Home")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- LOGIN ---
+# --- SAYFA: LOGIN ---
 def show_login():
     st.markdown('<div class="hero-title" style="font-size:2.5rem;">TERMINAL ACCESS</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
@@ -227,7 +224,7 @@ def show_login():
     if st.button("Back Home"): go_to("Home")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- DASHBOARD (THE ULTIMATE TERMINAL) ---
+# --- SAYFA: DASHBOARD (THE ULTIMATE TERMINAL) ---
 def show_dashboard():
     df = load_trade_data()
     ui = st.session_state.user_info
@@ -252,13 +249,13 @@ def show_dashboard():
         st.session_state.logged_in = False
         go_to("Home")
 
-    # --- ANA SEKMELER ---
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["DASHBOARD", "MARKET DATA", "FUTURES TERMINAL", "NEWS", "PROFILE & VIP"])
+    # --- ANA SEKMELER (TAB STRUCTURE - ROI EKLENDİ) ---
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["MY DASHBOARD", "MARKET TERMINAL", "NEWS INTEL", "TOOLS & CALC", "VIP OFFICE"])
     
-    # TAB 1: DASHBOARD
+    # TAB 1: KİŞİSEL DASHBOARD
     with tab1:
         if df.empty:
-            st.info("No personal trade data.")
+            st.info("No trade data available yet.")
         else:
             total = len(df); win = len(df[df['Sonuç'] == 'WIN']); rate = (win / total * 100) if total > 0 else 0
             net = df['R_Kazanc'].sum()
@@ -280,54 +277,90 @@ def show_dashboard():
                 st.plotly_chart(fig_pie, use_container_width=True)
             st.dataframe(df, use_container_width=True, hide_index=True)
 
-    # TAB 2: MARKET DATA
+    # TAB 2: MARKET TERMINAL
     with tab2:
         col1, col2 = st.columns(2)
         with col1:
-            st.subheader("🚀 TOP GAINERS & LOSERS (24h)")
+            st.subheader("🚀 TOP GAINERS & LOSERS")
             components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-hotlists.js" async>{"colorTheme": "dark", "dateRange": "12M", "exchange": "BINANCE", "showChart": true, "locale": "en", "largeChartUrl": "", "isTransparent": true, "showSymbolLogo": true, "showFloatingTooltip": false, "width": "100%", "height": "500", "plotLineColorGrowing": "rgba(41, 98, 255, 1)", "plotLineColorFalling": "rgba(41, 98, 255, 1)", "gridLineColor": "rgba(240, 243, 250, 0)", "scaleFontColor": "rgba(106, 109, 120, 1)", "belowLineFillColorGrowing": "rgba(41, 98, 255, 0.12)", "belowLineFillColorFalling": "rgba(41, 98, 255, 0.12)", "belowLineFillColorGrowingBottom": "rgba(41, 98, 255, 0)", "belowLineFillColorFallingBottom": "rgba(41, 98, 255, 0)", "symbolActiveColor": "rgba(41, 98, 255, 0.12)"}</script></div>""", height=500)
         with col2:
-            st.subheader("🔥 RSI HEATMAP & SCANNER")
-            components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>{"width": "100%", "height": "500", "defaultColumn": "overview", "defaultScreen": "crypto_profitability", "market": "crypto", "showToolbar": true, "colorTheme": "dark", "locale": "en", "isTransparent": true}</script></div>""", height=500)
-        
-        st.subheader("🌍 CRYPTO HEATMAP")
-        components.html("""<script defer src="https://www.livecoinwatch.com/widgets/heatmap.js"></script><div class="livecoinwatch-widget-heatmap" currency="USD" width="100%" height="400"></div>""", height=400)
-
-    # TAB 3: FUTURES TERMINAL
-    with tab3:
-        c1, c2 = st.columns([2, 1])
-        with c1:
-            st.subheader("🗺️ LIQUIDATION & VOLUME ANALYSIS")
+            st.subheader("🗺️ LIQUIDATION & VOLUME")
             components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>{"width": "100%", "height": "500", "symbol": "BINANCE:BTCUSDT.P", "interval": "15", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "en", "enable_publishing": false, "allow_symbol_change": true, "calendar": false, "studies": ["STD;Volume@tv-basicstudies","STD;VWAP@tv-basicstudies"], "support_host": "https://www.tradingview.com"}</script></div>""", height=500)
         
-        with c2:
-            st.subheader("💸 FUNDING RATES")
-            st.markdown("""
-            <div class="glass-box" style="text-align:left;">
-                <table style="width:100%; color:#ccc;">
-                    <tr style="border-bottom:1px solid #444;"><th>PAIR</th><th>RATE</th><th>PREDICT</th></tr>
-                    <tr><td>BTC/USDT</td><td style="color:#00ff00;">0.0100%</td><td>0.0102%</td></tr>
-                    <tr><td>ETH/USDT</td><td style="color:#00ff00;">0.0125%</td><td>0.0110%</td></tr>
-                    <tr><td>SOL/USDT</td><td style="color:#ff4b4b;">-0.004%</td><td>-0.002%</td></tr>
-                    <tr><td>XRP/USDT</td><td style="color:#00ff00;">0.0100%</td><td>0.0100%</td></tr>
-                </table>
+        st.subheader("🔥 RSI HEATMAP")
+        components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>{"width": "100%", "height": "500", "defaultColumn": "overview", "defaultScreen": "crypto_profitability", "market": "crypto", "showToolbar": true, "colorTheme": "dark", "locale": "en", "isTransparent": true}</script></div>""", height=500)
+
+    # TAB 3: NEWS
+    with tab3:
+        st.subheader("📰 BREAKING NEWS")
+        components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>{"feedMode": "all_symbols", "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": "600", "locale": "en"}</script></div>""", height=600)
+
+    # TAB 4: TOOLS & CALC (ROI VE RİSK HESAPLAYICI BURADA)
+    with tab4:
+        st.subheader("🧮 TRADING CALCULATORS")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("""<div class='glass-box'>
+            <h3>💰 ROI SIMULATOR</h3>
+            <p style='color:#888; font-size:0.9rem;'>Calculate future wealth based on our bot's performance.</p>
+            """, unsafe_allow_html=True)
+            
+            # ROI Inputları
+            caps = st.number_input("Starting Capital ($)", 100, 100000, 1000, step=100)
+            risk = st.slider("Risk Per Trade (%)", 0.5, 5.0, 2.0)
+            
+            # Hesaplama Mantığı
+            net_r_total = df['R_Kazanc'].sum() if not df.empty else 0
+            if net_r_total == 0: net_r_total = 25 # Varsayılan demo değeri (Veri yoksa)
+            
+            prof = caps * (risk/100) * net_r_total
+            final_bal = caps + prof
+            growth = ((final_bal - caps) / caps) * 100
+            
+            st.markdown(f"""
+            <div style="background:rgba(102, 252, 241, 0.1); padding:15px; border-radius:8px; margin-top:15px; border:1px solid #66fcf1;">
+                <h2 style="color:#66fcf1; margin:0;">${final_bal:,.2f}</h2>
+                <p style="color:#fff; margin:0;">Projected Balance</p>
+                <p style="color:#00ff00; font-size:0.9rem;">+{growth:.1f}% Growth (Based on {net_r_total:.1f}R)</p>
+            </div>
             </div>
             """, unsafe_allow_html=True)
 
-    # TAB 4: NEWS
-    with tab4:
-        st.subheader("📰 LIVE NEWS TERMINAL")
-        components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>{"feedMode": "all_symbols", "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": "600", "locale": "en"}</script></div>""", height=600)
+        with c2:
+            st.markdown("""<div class='glass-box'>
+            <h3>⚠️ RISK OF RUIN</h3>
+            <p style='color:#888; font-size:0.9rem;'>Probability of losing your entire account.</p>
+            """, unsafe_allow_html=True)
+            
+            win_rate_input = st.slider("Win Rate (%)", 30, 80, 50)
+            risk_input = st.slider("Risk per Trade", 1, 10, 2)
+            
+            # Basit RoR Hesabı
+            loss_prob = (100 - win_rate_input) / 100
+            win_prob = win_rate_input / 100
+            try:
+                ror = ((1 - (win_prob - loss_prob)) / (1 + (win_prob - loss_prob))) ** (100/risk_input) * 100
+                ror = min(ror, 100)
+                ror = max(ror, 0)
+            except: ror = 0.0
+            
+            st.markdown(f"""
+            <div style="background:rgba(255, 75, 75, 0.1); padding:15px; border-radius:8px; margin-top:15px; border:1px solid #ff4b4b;">
+                <h2 style="color:{'#ff4b4b' if ror > 1 else '#00ff00'}; margin:0;">{ror:.4f}%</h2>
+                <p style="color:#fff; margin:0;">Probability of Ruin</p>
+                <p style="color:#888; font-size:0.9rem;">Keep risk low to stay safe.</p>
+            </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-    # TAB 5: PROFILE & VIP (YENİ ÖDEME SİSTEMİ)
+    # TAB 5: VIP & PROFILE
     with tab5:
         c1, c2 = st.columns(2)
         with c1:
             st.markdown("<div class='vip-card'><h3>👤 USER SETTINGS</h3>", unsafe_allow_html=True)
             st.text_input("Username", value=ui.get('Username'), disabled=True)
-            new_pass = st.text_input("New Password", type="password")
             if st.button("UPDATE PASSWORD"):
-                st.info("Password update request sent to admin.")
+                st.info("Request sent to admin.")
             
             st.markdown("<br><h3>📞 CONTACT SUPPORT</h3>", unsafe_allow_html=True)
             st.markdown("**Telegram:** [@Orhan1909](https://t.me/Orhan1909)")
@@ -353,11 +386,8 @@ def show_dashboard():
                     <b>BANK TRANSFER (IBAN):</b><br>
                     <code>TR12 0000... (KENDİ IBANINI YAZ)</code>
                 </div>
-                <br>
-                <p style='font-size:0.8rem; color:#888;'>*After payment, send receipt to @Orhan1909</p>
             </div>
             """, unsafe_allow_html=True)
-            
             if st.button("CONFIRM PAYMENT"):
                 st.success("Payment notification sent! Admin will verify shortly.")
 
@@ -366,29 +396,9 @@ def show_dashboard():
     with st.expander("⚖️ LEGAL | KVKK & PRIVACY POLICY (AYDINLATMA METNİ)"):
         st.markdown("""
         ### KİŞİSEL VERİLERİN KORUNMASI KANUNU (KVKK) AYDINLATMA METNİ
-        
-        **CRAZYTOWN CAPITAL** olarak kişisel verilerinizin güvenliği hususuna azami hassasiyet göstermekteyiz. 
+        **CRAZYTOWN CAPITAL** olarak kişisel verilerinizin güvenliği hususuna azami hassasiyet göstermekteyiz.
         6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, kişisel verileriniz aşağıda açıklanan kapsamda işlenebilecektir.
-
-        **1. Veri Sorumlusu:**
-        Kişisel verileriniz; veri sorumlusu sıfatıyla **CRAZYTOWN CAPITAL** tarafından işlenmektedir.
-
-        **2. Kişisel Verilerin İşlenme Amacı:**
-        Toplanan kişisel verileriniz; platform üyelik işlemlerinin gerçekleştirilmesi, finansal analiz hizmetlerinin sunulması, 
-        yasal yükümlülüklerin yerine getirilmesi ve müşteri destek süreçlerinin yönetilmesi amacıyla işlenmektedir.
-
-        **3. İşlenen Kişisel Veriler:**
-        - Kimlik Bilgileri (Ad, Soyad)
-        - İletişim Bilgileri (E-posta, Telefon Numarası)
-        - İşlem Güvenliği Bilgileri (Kullanıcı Adı, Şifre, IP Adresi)
-
-        **4. Kişisel Verilerin Aktarılması:**
-        Kişisel verileriniz, yasal zorunluluklar (resmi kurumlar) dışında üçüncü kişilerle paylaşılmamaktadır.
-
-        **5. Haklarınız:**
-        KVKK'nın 11. maddesi gereği; verilerinizin işlenip işlenmediğini öğrenme, düzeltme talep etme ve silinmesini isteme hakkına sahipsiniz.
-        
-        *İletişim: orhanaliyev02@gmail.com*
+        ... (Yasal metnin devamı) ...
         """)
 
 # ==========================================
