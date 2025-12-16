@@ -8,10 +8,9 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import time
 import random
-import numpy as np
 
 # ==========================================
-# 1. AYARLAR VE CSS (CYBER-GLASS UI)
+# 1. AYARLAR VE CSS (V401)
 # ==========================================
 st.set_page_config(
     page_title="Crazytown Capital | Enterprise Terminal",
@@ -20,7 +19,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS TASARIMI (V400 PRO) ---
+# --- CSS TASARIMI ---
 st.markdown("""
     <style>
         /* 1. GENEL YAPI */
@@ -51,7 +50,6 @@ st.markdown("""
         .circles li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
         .circles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
         .circles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
-        .circles li:nth-child(4){ left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
         
         @keyframes animate {
             0%{ transform: translateY(0) rotate(45deg); opacity: 0; }
@@ -75,27 +73,15 @@ st.markdown("""
         .login-container { max-width: 400px; margin: 60px auto; border: 1px solid #66fcf1; box-shadow: 0 0 30px rgba(102, 252, 241, 0.15); }
         .status-bar { display: flex; gap: 15px; justify-content: center; margin-bottom: 5px; padding: 8px; color: #66fcf1; font-size: 0.8rem; border-bottom: 1px solid #66fcf1; }
 
-        /* YENİ: LIVE TRADE PULSE (CANLI İŞLEM) */
-        .live-pulse {
-            background: rgba(0, 255, 0, 0.1);
-            border: 1px solid #00ff00;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            animation: pulse-green 2s infinite;
-        }
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 255, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
-        }
+        /* FİYAT KARTLARI (ÖZEL) */
+        .pricing-card h3 { color: #66fcf1; letter-spacing: 2px; }
+        .pricing-card .price { font-size: 2.5rem; color: #fff; font-weight: bold; margin: 10px 0; }
+        .pricing-card.featured { border: 1px solid #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
 
         /* METİNLER VE INPUTLAR */
         .hero-title { font-size: 3.5rem; font-weight: 800; text-align: center; color: #fff; text-shadow: 0 0 20px #66fcf1; margin-bottom: 10px; }
         .hero-sub { font-size: 1.2rem; text-align: center; color: #66fcf1; letter-spacing: 3px; margin-bottom: 40px; }
         .metric-value { font-size: 2.2rem; font-weight: 700; color: #fff; }
-        .metric-label { color: #888; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
         
         .stTextInput input { background-color: #15161a !important; color: #fff !important; border: 1px solid #2d3845 !important; border-radius: 5px !important; }
         .stButton button { background-color: #66fcf1 !important; color: #0b0c10 !important; font-weight: bold !important; border: none !important; border-radius: 5px !important; width: 100% !important; padding: 12px !important; transition: all 0.3s ease; }
@@ -195,11 +181,11 @@ def show_home():
     with c1: st.markdown("""<div class="glass-box"><h3>⚡ AI Sniper</h3><p>Real-time FVG Detection & Auto-Execution</p></div>""", unsafe_allow_html=True)
     with c2: st.markdown("""<div class="glass-box"><h3>🐋 Whale Hunter</h3><p>Track large institutional money flow live</p></div>""", unsafe_allow_html=True)
 
-    st.markdown("<br><h3 style='text-align:center; color:#fff;'>MEMBERSHIP</h3>", unsafe_allow_html=True)
+    st.markdown("<br><h3 style='text-align:center; color:#fff;'>CHOOSE YOUR PLAN</h3>", unsafe_allow_html=True)
     pc1, pc2, pc3 = st.columns(3)
-    with pc1: st.markdown("""<div class="pricing-card"><h3>STARTER</h3><div class="plan-price">$30</div><p>/mo</p></div>""", unsafe_allow_html=True)
-    with pc2: st.markdown("""<div class="pricing-card" style="border:1px solid #66fcf1; box-shadow:0 0 15px rgba(102,252,241,0.2);"><h3>PRO</h3><div class="plan-price">$75</div><p>/qtr</p></div>""", unsafe_allow_html=True)
-    with pc3: st.markdown("""<div class="pricing-card"><h3>LIFETIME</h3><div class="plan-price">$250</div><p>once</p></div>""", unsafe_allow_html=True)
+    with pc1: st.markdown("""<div class="pricing-card"><h3>STARTER</h3><div class="price">$30</div><p>/mo</p></div>""", unsafe_allow_html=True)
+    with pc2: st.markdown("""<div class="pricing-card featured"><h3>VIP</h3><div class="price">$75</div><p>/qtr</p></div>""", unsafe_allow_html=True)
+    with pc3: st.markdown("""<div class="pricing-card"><h3>LIFETIME</h3><div class="price">$250</div><p>once</p></div>""", unsafe_allow_html=True)
 
 # --- REGISTER ---
 def show_register():
@@ -273,24 +259,9 @@ def show_dashboard():
     
     # TAB 1: DASHBOARD
     with tab1:
-        # CANLI İŞLEM NABZI (YENİ ÖZELLİK)
-        st.markdown("""
-        <div class="live-pulse">
-            <div>
-                <h3 style="margin:0; color:#fff;">BTC/USDT <span style="font-size:0.8rem; background:#00ff00; color:#000; padding:2px 6px; border-radius:4px;">LONG</span></h3>
-                <span style="color:#888; font-size:0.9rem;">Entry: 98,450 | Leverage: 10x</span>
-            </div>
-            <div style="text-align:right;">
-                <h2 style="margin:0; color:#00ff00;">+4.25%</h2>
-                <span style="color:#888; font-size:0.8rem;">PNL (Unrealized)</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
         if df.empty:
             st.info("No personal trade data found.")
         else:
-            # GELİŞMİŞ ANALİTİK
             total = len(df); win = len(df[df['Sonuç'] == 'WIN']); rate = (win / total * 100) if total > 0 else 0
             net = df['R_Kazanc'].sum()
             # Max Drawdown Hesabı
@@ -329,7 +300,7 @@ def show_dashboard():
         st.subheader("🔥 RSI HEATMAP")
         components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>{"width": "100%", "height": "500", "defaultColumn": "overview", "defaultScreen": "crypto_profitability", "market": "crypto", "showToolbar": true, "colorTheme": "dark", "locale": "en", "isTransparent": true}</script></div>""", height=500)
 
-    # TAB 3: INTEL & WHALES (YENİ ÖNERİLEN)
+    # TAB 3: INTEL & WHALES
     with tab3:
         st.subheader("🐋 WHALE ALERTS & NEWS")
         col1, col2 = st.columns([1, 2])
@@ -359,7 +330,7 @@ def show_dashboard():
             st.markdown("""<div class='glass-box'><h3>💰 ROI SIMULATOR</h3>""", unsafe_allow_html=True)
             caps = st.number_input("Capital ($)", 100, 100000, 1000, step=100)
             risk = st.slider("Risk Per Trade (%)", 0.5, 5.0, 2.0)
-            net_r_total = df['R_Kazanc'].sum() if not df.empty else 25 # Demo data if empty
+            net_r_total = df['R_Kazanc'].sum() if not df.empty else 25 
             prof = caps * (risk/100) * net_r_total
             st.markdown(f"""<h2 style="color:#66fcf1;">${caps+prof:,.2f}</h2><p>Projected Balance</p></div>""", unsafe_allow_html=True)
 
@@ -382,25 +353,96 @@ def show_dashboard():
         with ac1: st.text_input("Referral Link", value=f"https://crazytown.capital/?ref={ui.get('Username')}", disabled=True)
         with ac2: st.metric("Pending Commission", "$0.00")
 
-    # TAB 5: VIP & PROFILE
+    # TAB 5: VIP OFFICE (GÜNCELLENMİŞ SATIŞ ALANI)
     with tab5:
-        c1, c2 = st.columns(2)
+        st.markdown("<h2 style='text-align:center; color:#fff;'>UPGRADE MEMBERSHIP</h2>", unsafe_allow_html=True)
+        
+        # 1. PAKETLERİ GÖSTER
+        pc1, pc2, pc3 = st.columns(3)
+        with pc1:
+            st.markdown("""
+            <div class="pricing-card">
+                <h3>STARTER</h3>
+                <div class="price">$30</div>
+                <p>/month</p>
+                <ul style='text-align:left; color:#ccc; font-size:0.9rem;'>
+                    <li>Basic Signals</li>
+                    <li>Community Access</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+        with pc2:
+            st.markdown("""
+            <div class="pricing-card" style="border:1px solid #ffd700; box-shadow:0 0 15px rgba(255,215,0,0.2);">
+                <h3 style="color:#ffd700">VIP</h3>
+                <div class="price">$75</div>
+                <p>/quarter</p>
+                <ul style='text-align:left; color:#ccc; font-size:0.9rem;'>
+                    <li><b>Everything in Starter</b></li>
+                    <li>0ms Latency Signals</li>
+                    <li>Whale Alerts</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+        with pc3:
+            st.markdown("""
+            <div class="pricing-card">
+                <h3>LIFETIME</h3>
+                <div class="price">$250</div>
+                <p>once</p>
+                <ul style='text-align:left; color:#ccc; font-size:0.9rem;'>
+                    <li><b>All Future Updates</b></li>
+                    <li>Private Mentorship</li>
+                    <li>Bot Source Code</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.write("")
+        st.write("")
+
+        # 2. ÖDEME YÖNTEMLERİ
+        c1, c2 = st.columns([1, 2])
         with c1:
-            st.markdown("<div class='vip-card'><h3>👤 SETTINGS</h3>", unsafe_allow_html=True)
-            st.text_input("Username", value=ui.get('Username'), disabled=True)
-            new_pass = st.text_input("New Password", type="password")
-            if st.button("UPDATE PASSWORD"): st.info("Request sent.")
-            st.markdown("<br><h3>📞 SUPPORT</h3><p>Telegram: @Orhan1909</p></div>", unsafe_allow_html=True)
-            
+            with st.expander("👤 USER SETTINGS", expanded=True):
+                st.text_input("Username", value=ui.get('Username'), disabled=True)
+                st.text_input("New Password", type="password")
+                if st.button("UPDATE PASSWORD"): st.info("Request sent.")
+                st.markdown("---")
+                st.markdown("**Telegram:** [@Orhan1909](https://t.me/Orhan1909)")
+                st.markdown("**Email:** orhanaliyev02@gmail.com")
+
         with c2:
             st.markdown("""
             <div class='payment-card'>
-                <h2 style='color:#ffd700'>👑 VIP PAYMENT</h2>
-                <div style='text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:5px;'><b>USDT (TRC20):</b><br><code style='color:#66fcf1'>TL8w... (YOUR_ADDR)</code></div><br>
-                <div style='text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:5px;'><b>IBAN:</b><br><code>TR12 0000... (YOUR_IBAN)</code></div>
+                <h3 style='color:#ffd700; margin-top:0;'>💳 PAYMENT DETAILS</h3>
+                <p style="color:#ccc;">To upgrade, send the amount to one of the addresses below and click 'Confirm Payment'.</p>
+                
+                <div style='text-align:left; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; margin-bottom:10px;'>
+                    <span style="color:#26a17b; font-weight:bold;">USDT (TRC20):</span><br>
+                    <code style='color:#fff; font-size:1rem;'>TL8w... (SENİN_ADRESİN)</code>
+                </div>
+                
+                <div style='text-align:left; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; margin-bottom:10px;'>
+                    <span style="color:#f2a900; font-weight:bold;">BITCOIN (BTC):</span><br>
+                    <code style='color:#fff; font-size:1rem;'>1A1z... (SENİN_ADRESİN)</code>
+                </div>
+                
+                <div style='text-align:left; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; margin-bottom:10px;'>
+                    <span style="color:#fff; font-weight:bold;">IBAN (Bank Transfer):</span><br>
+                    <code style='color:#fff; font-size:1rem;'>TR12 0000... (SENİN_IBANIN)</code>
+                </div>
             </div>
             """, unsafe_allow_html=True)
-            if st.button("CONFIRM PAYMENT"): st.success("Notification sent!")
+            
+            # Ödeme Onay Formu
+            selected_plan = st.selectbox("Select Plan Paid For", ["Starter ($30)", "VIP ($75)", "Lifetime ($250)"])
+            tx_id = st.text_input("Transaction ID (Hash) / Sender Name")
+            if st.button("✅ CONFIRM PAYMENT"):
+                if tx_id:
+                    st.success(f"Payment notification for {selected_plan} sent! Admin will enable your access shortly.")
+                else:
+                    st.warning("Please enter Transaction ID or Sender Name.")
 
     # KVKK
     st.markdown("<br><br>", unsafe_allow_html=True)
