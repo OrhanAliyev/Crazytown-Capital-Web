@@ -10,7 +10,7 @@ import random
 # 1. AYARLAR VE CSS
 # ==========================================
 st.set_page_config(
-    page_title="Crazytown Capital | Canlı Terminal",
+    page_title="Crazytown Capital | Pro Terminal",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -61,12 +61,18 @@ st.markdown("""
             margin-bottom: 20px;
         }
         
+        /* ANALİZ KARTI ÖZEL */
         .tool-card { text-align: left; border-left: 4px solid #66fcf1; transition: transform 0.3s ease; position:relative; overflow:hidden;}
         .tool-card:hover { transform: translateX(5px); border-color: #ffd700; }
-        .tool-title { font-weight: bold; color: #fff; font-size: 1.1rem; display: flex; justify-content: space-between; }
-        .status-bullish { color: #00ff00; background: rgba(0,255,0,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;}
-        .status-bearish { color: #ff4b4b; background: rgba(255,75,75,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;}
-        .status-neutral { color: #ccc; background: rgba(200,200,200,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;}
+        .tool-title { font-weight: bold; color: #fff; font-size: 1.2rem; display: flex; justify-content: space-between; align-items:center; }
+        
+        .status-bullish { color: #00ff00; background: rgba(0,255,0,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight:bold;}
+        .status-bearish { color: #ff4b4b; background: rgba(255,75,75,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight:bold;}
+        .status-neutral { color: #ccc; background: rgba(200,200,200,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight:bold;}
+
+        /* ARAMA ÇUBUĞU */
+        .search-container { margin-bottom: 20px; }
+        .stTextInput label { color: #66fcf1 !important; font-weight: bold; }
 
         /* DİĞERLERİ */
         .stTextInput input { background-color: #15161a !important; color: #fff !important; border: 1px solid #2d3845 !important; border-radius: 5px !important; }
@@ -83,57 +89,28 @@ st.markdown("""
 st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 2. GERÇEK VERİ MOTORU (MULTI-SOURCE)
+# 2. GELİŞMİŞ ANALİZ MOTORU (SEARCH ENGINE)
 # ==========================================
 
 @st.cache_data(ttl=10)
-def get_live_market_data(symbol='BTC'):
-    # 1. YÖNTEM: BINANCE
+def get_live_market_data(symbol):
+    # Kullanıcı ne yazarsa yazsın (örn: 'doge', 'DOGE', 'DoGe') -> 'DOGE' yap
+    symbol = symbol.upper()
     try:
+        # Binance API
         pair = f"{symbol}USDT"
         url = f"https://api.binance.com/api/v3/klines?symbol={pair}&interval=1h&limit=50"
-        response = requests.get(url, timeout=2)
+        response = requests.get(url, timeout=3)
         if response.status_code == 200:
             data = response.json()
             df = pd.DataFrame(data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'q_vol', 'num_trades', 'tb_base_vol', 'tb_quote_vol', 'ignore'])
             df['close'] = df['close'].astype(float)
             df['volume'] = df['volume'].astype(float)
             return df
-    except: pass
-
-    # 2. YÖNTEM: KRAKEN (YEDEK)
-    try:
-        pair_map = {'BTC': 'XBTUSD', 'ETH': 'ETHUSD', 'SOL': 'SOLUSD'}
-        pair = pair_map.get(symbol, 'XBTUSD')
-        url = f"https://api.kraken.com/0/public/OHLC?pair={pair}&interval=60"
-        response = requests.get(url, timeout=2)
-        if response.status_code == 200:
-            data = response.json()
-            result_key = list(data['result'].keys())[0]
-            ohlc = data['result'][result_key]
-            df = pd.DataFrame(ohlc, columns=['timestamp', 'open', 'high', 'low', 'close', 'vwap', 'volume', 'count'])
-            df['close'] = df['close'].astype(float)
-            df['volume'] = df['volume'].astype(float)
-            return df.tail(50)
-    except: pass
-
-    # 3. YÖNTEM: COINBASE (SON ÇARE)
-    try:
-        pair = f"{symbol}-USD"
-        url = f"https://api.exchange.coinbase.com/products/{pair}/candles?granularity=3600"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        response = requests.get(url, headers=headers, timeout=2)
-        if response.status_code == 200:
-            data = response.json()
-            df = pd.DataFrame(data, columns=['timestamp', 'low', 'high', 'open', 'close', 'volume'])
-            df['close'] = df['close'].astype(float)
-            df['volume'] = df['volume'].astype(float)
-            return df.iloc[::-1].tail(50)
-    except: return pd.DataFrame()
-
+    except:
+        return pd.DataFrame()
     return pd.DataFrame()
 
-# Teknik Analiz Hesaplama
 def calculate_signals(df):
     if df.empty: return 50, 0, 0, 0
     closes = df['close']
@@ -150,38 +127,58 @@ def calculate_signals(df):
     vol_spike = (current_vol / avg_vol) * 100 if avg_vol > 0 else 0
     return current_rsi, sma_short, sma_long, vol_spike
 
-# Sinyal Oluşturucu (TÜRKÇE)
-def generate_pro_signals(symbol):
+def analyze_coin(symbol):
     df = get_live_market_data(symbol)
     if df.empty:
-        return {"price": 0, "rsi": 50, "trend": "BEKLENİYOR...", "whale": "TARANIYOR...", "vol_pct": 0}
+        return None # Hata durumu
     
     rsi, sma_s, sma_l, vol = calculate_signals(df)
     current_price = df['close'].iloc[-1]
     
-    # KARAR MEKANİZMASI (TÜRKÇE)
-    if sma_s > sma_l: trend = "BOĞA DALGASI 🟢" # Bullish
-    else: trend = "AYI DALGASI 🔴" # Bearish
+    # 1. TREND ANALİZİ
+    if sma_s > sma_l: trend = "BOĞA (YÜKSELİŞ) 🟢"
+    else: trend = "AYI (DÜŞÜŞ) 🔴"
     
+    # 2. HACİM ANALİZİ
     whale_alert = "YÜKSEK 🐋" if vol > 130 else "NORMAL 🌊"
+    
+    # 3. GÜVEN SKORU HESAPLAMA (AI SCORE)
+    score = 50 # Başlangıç nötr
+    
+    # Trend Puanı
+    if sma_s > sma_l: score += 20
+    else: score -= 20
+    
+    # RSI Puanı
+    if rsi < 30: score += 25 # Aşırı satım, dönüş ihtimali
+    elif rsi > 70: score -= 25 # Aşırı alım, düşüş ihtimali
+    
+    # Hacim Puanı
+    if vol > 150: score += 10 # Hacim onayı
+    
+    # Skor Sınırları (0-100)
+    score = max(0, min(100, score))
+    
+    # 4. KARAR
+    if score >= 75: decision = "GÜÇLÜ AL 🚀"
+    elif score >= 60: decision = "ALIM FIRSATI ✅"
+    elif score <= 25: decision = "GÜÇLÜ SAT 📉"
+    elif score <= 40: decision = "SATIŞ BASKISI 🔻"
+    else: decision = "BEKLE / NÖTR ✋"
     
     return {
         "price": current_price,
         "rsi": rsi,
         "trend": trend,
         "whale": whale_alert,
-        "vol_pct": vol
+        "vol_pct": vol,
+        "score": score,
+        "decision": decision
     }
 
 # ==========================================
-# 3. KULLANICI SİSTEMİ
+# 3. KULLANICI SİSTEMİ (DEMO)
 # ==========================================
-def register_user(username, password, name):
-    return "Success" # Demo
-
-def login_user(username, password):
-    return {"Name": "Trader", "Plan": "Free"} # Demo
-
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 if 'user_info' not in st.session_state: st.session_state.user_info = {}
 if 'current_page' not in st.session_state: st.session_state.current_page = 'Home'
@@ -193,18 +190,15 @@ def show_home():
     components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}, {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"}, {"proName": "BINANCE:SOLUSDT", "title": "Solana"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "tr"}</script></div>""", height=50)
     st.markdown('<div class="hero-title">CRAZYTOWN CAPITAL</div>', unsafe_allow_html=True)
     st.markdown('<div class="hero-sub">YAPAY ZEKA DESTEKLİ TİCARET TERMİNALİ</div>', unsafe_allow_html=True)
-    
     c1, c2, c3, c4, c5 = st.columns([1,1,1,1,1])
     with c2: 
         if st.button("🚀 GİRİŞ YAP"): go_to("Login")
     with c4: 
         if st.button("💎 KAYIT OL"): go_to("Register")
-
     st.write("")
     c1, c2 = st.columns(2)
     with c1: st.markdown("""<div class="glass-box"><h3>⚡ Market Waves Pro</h3><p>Gerçek Zamanlı Trend Takibi & RSI Analizi</p></div>""", unsafe_allow_html=True)
     with c2: st.markdown("""<div class="glass-box"><h3>🐋 Beluga Nautilus</h3><p>Canlı Balina Hacim Takip Sistemi</p></div>""", unsafe_allow_html=True)
-
     st.markdown("<br><h3 style='text-align:center; color:#fff;'>ÜYELİK PAKETLERİ</h3>", unsafe_allow_html=True)
     pc1, pc2, pc3 = st.columns(3)
     with pc1: st.markdown("""<div class="pricing-card"><h3>BAŞLANGIÇ</h3><div style="font-size:2rem;color:#fff;">$30</div><p>/ay</p></div>""", unsafe_allow_html=True)
@@ -212,7 +206,6 @@ def show_home():
     with pc3: st.markdown("""<div class="pricing-card"><h3>ÖMÜR BOYU</h3><div style="font-size:2rem;color:#fff;">$250</div><p>tek sefer</p></div>""", unsafe_allow_html=True)
 
 def show_auth(mode):
-    # Başlıkları Türkçeleştir
     title = "KAYIT OL" if mode == "Register" else "GİRİŞ YAP"
     st.markdown(f'<div class="hero-title" style="font-size:2.5rem;">{title}</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
@@ -222,32 +215,24 @@ def show_auth(mode):
         if mode == "Register": n = st.text_input("Ad Soyad")
         if st.form_submit_button("ONAYLA"):
             if mode == "Register":
-                st.success("Hesap Oluşturuldu! Giriş yapabilirsiniz.")
-                time.sleep(1); go_to("Login")
+                st.success("Hesap Oluşturuldu!"); time.sleep(1); go_to("Login")
             else:
                 if u == "admin" and p == "password123":
-                    st.session_state.logged_in = True
-                    st.session_state.user_info = {"Name": "Orhan Aliyev", "Plan": "ADMIN"}
-                    st.rerun()
+                    st.session_state.logged_in = True; st.session_state.user_info = {"Name": "Orhan Aliyev", "Plan": "ADMIN"}; st.rerun()
                 else:
-                    st.session_state.logged_in = True
-                    st.session_state.user_info = {"Name": u, "Plan": "Free"}
-                    st.success("Hoşgeldiniz"); time.sleep(1); st.rerun()
+                    st.session_state.logged_in = True; st.session_state.user_info = {"Name": u, "Plan": "Free"}; st.success("Hoşgeldiniz"); time.sleep(1); st.rerun()
     if st.button("Ana Sayfaya Dön"): go_to("Home")
     st.markdown('</div>', unsafe_allow_html=True)
 
 # --- DASHBOARD ---
 def show_dashboard():
-    # Canlı Verileri Çek
-    btc_data = generate_pro_signals('BTC')
-    eth_data = generate_pro_signals('ETH')
     ui = st.session_state.user_info
     
     st.markdown(f"""
     <div class="status-bar">
         <span><span style="height:8px;width:8px;background:#00ff00;border-radius:50%;display:inline-block;"></span> <b>SİSTEM AKTİF</b></span>
         <span>|</span>
-        <span>VERİ: <b>CANLI (MULTI-SOURCE)</b></span>
+        <span>VERİ: <b>CANLI (BINANCE)</b></span>
         <span>|</span>
         <span>KULLANICI: <b>{ui.get('Name')}</b></span>
     </div>
@@ -258,60 +243,91 @@ def show_dashboard():
     st.write("")
     if st.button("🔒 ÇIKIŞ YAP"): st.session_state.logged_in = False; go_to("Home")
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["⚡ PRO ARAÇLAR", "📊 PİYASA VERİLERİ", "🎓 AKADEMİ", "🧮 HESAP MAKİNESİ", "👑 VIP OFİS"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["⚡ PRO ARAÇLAR (ARA & BUL)", "📊 PİYASA VERİLERİ", "🎓 AKADEMİ", "🧮 HESAP MAKİNESİ", "👑 VIP OFİS"])
     
-    # TAB 1: PRO ARAÇLAR
+    # TAB 1: PRO ARAÇLAR (ARAMA MOTORU)
     with tab1:
-        st.markdown(f"""<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><h3 style="margin:0;">⚡ CANLI ALGORİTMİK SİNYALLER</h3><span style="color:#888;">Güncelleme: {datetime.now().strftime('%H:%M:%S')}</span></div>""", unsafe_allow_html=True)
-        if st.button("🔄 SİNYALLERİ YENİLE"): st.rerun()
+        st.markdown(f"""<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><h3 style="margin:0;">⚡ YAPAY ZEKA ANALİZ MOTORU</h3><span style="color:#888;">{datetime.now().strftime('%H:%M')}</span></div>""", unsafe_allow_html=True)
+        
+        # --- ARAMA ÇUBUĞU ---
+        st.markdown("<div class='search-container'>", unsafe_allow_html=True)
+        search_query = st.text_input("COIN ARA (Örn: BTC, ETH, DOGE, PEPE, AVAX)", placeholder="Sembol girin ve Enter'a basın...").upper()
+        st.markdown("</div>", unsafe_allow_html=True)
 
-        c1, c2 = st.columns(2)
-        with c1:
-            trend_col = "status-bullish" if "BOĞA" in btc_data['trend'] else "status-bearish" if "AYI" in btc_data['trend'] else "status-neutral"
-            whale_col = "status-bullish" if "YÜKSEK" in btc_data['whale'] else "status-neutral"
+        if search_query:
+            with st.spinner(f"{search_query} için Binance verileri taranıyor..."):
+                data = analyze_coin(search_query)
+                
+            if data:
+                # Dinamik Renkler
+                card_border = "#00ff00" if data['score'] >= 60 else "#ff4b4b" if data['score'] <= 40 else "#ffd700"
+                trend_col = "status-bullish" if "BOĞA" in data['trend'] else "status-bearish" if "AYI" in data['trend'] else "status-neutral"
+                whale_col = "status-bullish" if "YÜKSEK" in data['whale'] else "status-neutral"
+                
+                st.markdown(f"""
+                <div class="tool-card" style="border-left-color: {card_border}; border-width: 0 0 0 6px;">
+                    <div class="tool-title">
+                        <span>{search_query} / USDT</span>
+                        <span style="font-size:1.5rem;">${data['price']:,.4f}</span>
+                    </div>
+                    <hr style="border-color:rgba(255,255,255,0.1);">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div>
+                            <p style="color:#ccc; margin:0; font-size:0.9rem;">Piyasa Yönü</p>
+                            <span class="{trend_col}">{data['trend']}</span>
+                        </div>
+                        <div>
+                            <p style="color:#ccc; margin:0; font-size:0.9rem;">Balina Aktivitesi</p>
+                            <span class="{whale_col}">{data['whale']}</span>
+                        </div>
+                        <div>
+                            <p style="color:#ccc; margin:0; font-size:0.9rem;">RSI (Güç Endeksi)</p>
+                            <b style="color:#fff;">{data['rsi']:.2f}</b>
+                        </div>
+                        <div>
+                            <p style="color:#ccc; margin:0; font-size:0.9rem;">Hacim Artışı</p>
+                            <b style="color:#fff;">%{data['vol_pct']:.0f}</b>
+                        </div>
+                    </div>
+                    <br>
+                    <p style="color:#ccc; margin:0; font-size:0.9rem;">Yapay Zeka Güven Skoru:</p>
+                    <div style="background:#333; height:10px; width:100%; border-radius:5px; margin-bottom:10px;">
+                        <div style="background:linear-gradient(90deg, #ff4b4b, #ffd700, #00ff00); height:100%; width:{data['score']}%; border-radius:5px;"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="color:#fff; font-weight:bold; font-size:1.2rem;">KARAR: <span style="color:{card_border}">{data['decision']}</span></span>
+                        <span style="color:#888;">Skor: {data['score']}/100</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Sinyal Güçlüyse Telegram Butonu Göster
+                if data['score'] >= 75 or data['score'] <= 25:
+                    st.write("")
+                    st.markdown(f"""<a href="https://t.me/share/url?url=CRAZYTOWN ANALİZ: {search_query} - Karar: {data['decision']} (Fiyat: {data['price']})" target="_blank" style="text-decoration:none;"><button style="background:#0088cc; color:white; width:100%; padding:10px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">✈️ TELEGRAM'A SİNYAL GÖNDER</button></a>""", unsafe_allow_html=True)
+                
+                # TradingView Grafiği (Dinamik)
+                st.write("")
+                components.html(f"""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>{{"width": "100%", "height": "500", "symbol": "BINANCE:{search_query}USDT", "interval": "60", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "tr", "enable_publishing": false, "hide_side_toolbar": false, "allow_symbol_change": true, "studies": ["STD;MACD", "STD;RSI"], "support_host": "https://www.tradingview.com"}}</script></div>""", height=500)
+
+            else:
+                st.error("Coin bulunamadı veya listelenmiyor. Lütfen doğru sembolü girin (Örn: BTC, ETH).")
+        
+        else:
+            st.info("👆 Analiz etmek için yukarıdaki kutuya bir coin ismi yazın.")
+            # Varsayılan olarak BTC ve ETH kartlarını göster (Boş kalmasın)
+            c1, c2 = st.columns(2)
+            btc_d = analyze_coin("BTC")
+            eth_d = analyze_coin("ETH")
             
-            # AI Karar Mantığı (Türkçe)
-            if btc_data['rsi'] < 40 and "BOĞA" in btc_data['trend']: ai_call = "LONG FIRSATI 🚀"
-            elif btc_data['rsi'] > 60 and "AYI" in btc_data['trend']: ai_call = "SHORT FIRSATI 📉"
-            else: ai_call = "BEKLE ✋"
-
-            st.markdown(f"""
-            <div class="tool-card" style="border-left-color: #f2a900;">
-                <div class="tool-title">BITCOIN (BTC) <span style="font-size:0.9rem;">${btc_data['price']:,.2f}</span></div>
-                <hr style="border-color:rgba(255,255,255,0.1);">
-                <p style="color:#ccc; font-size:0.9rem; line-height:1.8;">
-                    🌊 <b>Piyasa Dalgaları:</b> <span class="{trend_col}">{btc_data['trend']}</span><br>
-                    🐋 <b>Beluga Hacmi:</b> <span class="{whale_col}">{btc_data['whale']} (%{btc_data['vol_pct']:.0f})</span><br>
-                    📈 <b>RSI (14):</b> <b style="color:{'#00ff00' if btc_data['rsi']<30 else '#ff4b4b' if btc_data['rsi']>70 else '#fff'}">{btc_data['rsi']:.2f}</b><br>
-                    🎯 <b>Yapay Zeka Çağrısı:</b> {ai_call}
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with c2:
-            trend_col = "status-bullish" if "BOĞA" in eth_data['trend'] else "status-bearish" if "AYI" in eth_data['trend'] else "status-neutral"
-            whale_col = "status-bullish" if "YÜKSEK" in eth_data['whale'] else "status-neutral"
-            
-            if eth_data['rsi'] < 40 and "BOĞA" in eth_data['trend']: ai_call_eth = "LONG FIRSATI 🚀"
-            elif eth_data['rsi'] > 60 and "AYI" in eth_data['trend']: ai_call_eth = "SHORT FIRSATI 📉"
-            else: ai_call_eth = "BEKLE ✋"
-
-            st.markdown(f"""
-            <div class="tool-card" style="border-left-color: #627eea;">
-                <div class="tool-title">ETHEREUM (ETH) <span style="font-size:0.9rem;">${eth_data['price']:,.2f}</span></div>
-                <hr style="border-color:rgba(255,255,255,0.1);">
-                <p style="color:#ccc; font-size:0.9rem; line-height:1.8;">
-                    🌊 <b>Piyasa Dalgaları:</b> <span class="{trend_col}">{eth_data['trend']}</span><br>
-                    🐋 <b>Beluga Hacmi:</b> <span class="{whale_col}">{eth_data['whale']} (%{eth_data['vol_pct']:.0f})</span><br>
-                    📈 <b>RSI (14):</b> <b style="color:{'#00ff00' if eth_data['rsi']<30 else '#ff4b4b' if eth_data['rsi']>70 else '#fff'}">{eth_data['rsi']:.2f}</b><br>
-                    🎯 <b>Yapay Zeka Çağrısı:</b> {ai_call_eth}
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.write("")
-        st.subheader("📈 CANLI GRAFİK")
-        components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>{"width": "100%", "height": "600", "symbol": "BINANCE:BTCUSDT", "interval": "60", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "tr", "enable_publishing": false, "hide_side_toolbar": false, "allow_symbol_change": true, "studies": ["STD;MACD", "STD;RSI", "STD;Stochastic"], "support_host": "https://www.tradingview.com"}</script></div>""", height=600)
+            if btc_d:
+                with c1:
+                    trend_col = "status-bullish" if "BOĞA" in btc_d['trend'] else "status-bearish"
+                    st.markdown(f"""<div class="tool-card"><div class="tool-title">BITCOIN (BTC)</div><p style="color:#ccc;">Fiyat: ${btc_d['price']:,.2f}<br>Yön: <span class="{trend_col}">{btc_d['trend']}</span><br>Karar: <b>{btc_d['decision']}</b></p></div>""", unsafe_allow_html=True)
+            if eth_d:
+                with c2:
+                    trend_col = "status-bullish" if "BOĞA" in eth_d['trend'] else "status-bearish"
+                    st.markdown(f"""<div class="tool-card"><div class="tool-title">ETHEREUM (ETH)</div><p style="color:#ccc;">Fiyat: ${eth_d['price']:,.2f}<br>Yön: <span class="{trend_col}">{eth_d['trend']}</span><br>Karar: <b>{eth_d['decision']}</b></p></div>""", unsafe_allow_html=True)
 
     # TAB 2: PİYASA VERİLERİ
     with tab2:
