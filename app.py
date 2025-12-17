@@ -5,22 +5,22 @@ import requests
 import time
 
 # ==========================================
-# 1. BAŞLANGIÇ AYARLARI (CRASH FIX)
+# 1. AYARLAR & SESSION (ÇÖKME ÖNLEYİCİ)
 # ==========================================
 st.set_page_config(
-    page_title="Crazytown Capital | Ultimate Terminal",
+    page_title="Crazytown Capital | Ultimate",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Session State Tanımlamaları (Hata Almamak İçin Zorunlu)
+# --- KRİTİK DÜZELTME: Session State İlk Tanımlama ---
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
-if 'user' not in st.session_state: st.session_state.user = "Misafir"
+if 'user_info' not in st.session_state: st.session_state.user_info = {"Name": "Misafir"}
 if 'page' not in st.session_state: st.session_state.page = "Login"
 
 # ==========================================
-# 2. CSS TASARIMI (FULL ESTETİK)
+# 2. CSS TASARIMI (FULL ESTETİK GERİ GELDİ)
 # ==========================================
 st.markdown("""
     <style>
@@ -34,6 +34,15 @@ st.markdown("""
         .ticker-wrap { width: 100%; background-color: #000; border-bottom: 1px solid #333; height: 35px; line-height: 35px; overflow: hidden; white-space: nowrap; position: fixed; top: 0; left: 0; z-index: 99;}
         .ticker-item { display: inline-block; padding: 0 2rem; color: #66fcf1; font-weight: bold; font-size: 0.9rem; font-family: monospace; }
         
+        /* ARKA PLAN ANİMASYONU */
+        .area { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
+        .circles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
+        .circles li { position: absolute; display: block; list-style: none; width: 20px; height: 20px; background: rgba(102, 252, 241, 0.05); animation: animate 25s linear infinite; bottom: -150px; border: 1px solid rgba(102, 252, 241, 0.1); transform: rotate(45deg); }
+        .circles li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+        .circles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+        .circles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+        @keyframes animate { 0%{ transform: translateY(0) rotate(45deg); opacity: 0; } 50%{ opacity: 0.5; } 100%{ transform: translateY(-1000px) rotate(720deg); opacity: 0; } }
+
         /* GİRİŞ KUTUSU */
         .login-box { border: 1px solid #66fcf1; padding: 40px; border-radius: 15px; background: rgba(20,20,30,0.95); box-shadow: 0 0 30px rgba(102,252,241,0.15); text-align: center; margin-top: 80px; max-width: 500px; margin-left: auto; margin-right: auto;}
         
@@ -76,8 +85,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Haber Bandı
-st.markdown("""<div class="ticker-wrap"><span class="ticker-item">BTC: $98,450 (+2.4%)</span><span class="ticker-item">ETH: $3,200 (+1.1%)</span><span class="ticker-item">SOL: $145 (-0.5%)</span><span class="ticker-item">FED FAİZ KARARI BEKLENİYOR...</span><span class="ticker-item">CRAZYTOWN CAPITAL V17.0 (MASTER) SİSTEM AKTİF</span></div>""", unsafe_allow_html=True)
+# HABER BANDI VE ANİMASYON
+st.markdown("""<div class="ticker-wrap"><span class="ticker-item">BTC: $98,450 (+2.4%)</span><span class="ticker-item">ETH: $3,200 (+1.1%)</span><span class="ticker-item">SOL: $145 (-0.5%)</span><span class="ticker-item">FED FAİZ KARARI BEKLENİYOR...</span><span class="ticker-item">CRAZYTOWN CAPITAL V19.0 (RESURRECTION) AKTİF</span></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
 
 # ==========================================
 # 3. VERİ & ANALİZ MOTORU
@@ -86,7 +96,7 @@ st.markdown("""<div class="ticker-wrap"><span class="ticker-item">BTC: $98,450 (
 def get_crypto_data(symbol):
     symbol = symbol.upper().strip().replace("USDT", "")
     try:
-        # Binance API (En Hızlısı)
+        # Binance API (En Hızlı ve Güvenilir)
         url = f"https://api.binance.com/api/v3/klines?symbol={symbol}USDT&interval=1h&limit=50"
         r = requests.get(url, timeout=3)
         
@@ -97,7 +107,6 @@ def get_crypto_data(symbol):
             volumes = df['v'].astype(float).tolist()
             
             curr_price = closes[-1]
-            prev_price = closes[0]
             change = ((curr_price - closes[-24]) / closes[-24]) * 100 if len(closes) > 24 else 0
             
             return {"symbol": symbol, "price": curr_price, "change": change, "closes": closes, "volumes": volumes}
@@ -210,7 +219,7 @@ def show_login():
         with b1:
             if st.button("GİRİŞ YAP"):
                 st.session_state.logged_in = True
-                st.session_state.user = u if u else "Misafir"
+                st.session_state.user_info = {"Name": u if u else "Misafir"}
                 go_home()
         with b2:
             if st.button("KAYIT OL"): go_register()
@@ -234,7 +243,7 @@ def show_register():
 def show_dashboard():
     # Üst Bar
     c1, c2 = st.columns([4, 1])
-    with c1: st.markdown(f"### 👋 Hoşgeldin, <span style='color:#66fcf1'>{st.session_state.user}</span>", unsafe_allow_html=True)
+    with c1: st.markdown(f"### 👋 Hoşgeldin, <span style='color:#66fcf1'>{st.session_state.user_info['Name']}</span>", unsafe_allow_html=True)
     with c2: 
         if st.button("🔒 ÇIKIŞ YAP"): 
             st.session_state.logged_in = False
