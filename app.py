@@ -1,10 +1,14 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objects as go
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
 import time
-import ccxt  # GERÇEK KRİPTO VERİSİ İÇİN
-import numpy as np
+import random
+import requests # CCXT YERİNE ARTIK BUNU KULLANIYORUZ (HATASIZ)
 
 # ==========================================
 # 1. AYARLAR VE CSS
@@ -68,12 +72,10 @@ st.markdown("""
         .status-bearish { color: #ff4b4b; background: rgba(255,75,75,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;}
         .status-neutral { color: #ccc; background: rgba(200,200,200,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;}
 
-        /* INPUT VE BUTTON */
+        /* DİĞERLERİ */
         .stTextInput input { background-color: #15161a !important; color: #fff !important; border: 1px solid #2d3845 !important; border-radius: 5px !important; }
         .stButton button { background-color: #66fcf1 !important; color: #0b0c10 !important; font-weight: bold !important; border: none !important; border-radius: 5px !important; width: 100% !important; padding: 12px !important; transition: all 0.3s ease; }
         .stButton button:hover { background-color: #fff !important; box-shadow: 0 0 15px #66fcf1; transform: translateY(-2px); }
-
-        /* TABS */
         .stTabs [data-baseweb="tab-list"] { gap: 10px; border-bottom: 1px solid #333; }
         .stTabs [data-baseweb="tab"] { height: 50px; color: #888; font-weight: 600; border: none; }
         .stTabs [aria-selected="true"] { color: #66fcf1 !important; border-bottom: 2px solid #66fcf1 !important; background: rgba(102,252,241,0.05); }
@@ -85,65 +87,66 @@ st.markdown("""
 st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 2. GERÇEK VERİ MOTORU (CCXT & LOGIC)
+# 2. GERÇEK VERİ MOTORU (REQUESTS İLE)
 # ==========================================
 
-# Binance'den Canlı Veri Çekme Fonksiyonu
-@st.cache_data(ttl=15) # 15 saniyede bir veriyi yeniler
-def get_live_market_data(symbol='BTC/USDT'):
+# Binance API'den Veri Çekme (CCXT Yerine Requests)
+@st.cache_data(ttl=15)
+def get_live_market_data(symbol='BTCUSDT'):
     try:
-        exchange = ccxt.binance()
-        # Son 100 mumu (1 saatlik) çek
-        bars = exchange.fetch_ohlcv(symbol, timeframe='1h', limit=50)
-        df = pd.DataFrame(bars, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+        url = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval=1h&limit=50"
+        response = requests.get(url)
+        data = response.json()
+        # Data format: [Open time, Open, High, Low, Close, Volume, ...]
+        df = pd.DataFrame(data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'q_vol', 'num_trades', 'tb_base_vol', 'tb_quote_vol', 'ignore'])
+        df['close'] = df['close'].astype(float)
+        df['volume'] = df['volume'].astype(float)
         return df
     except Exception as e:
         return pd.DataFrame()
 
-# Teknik Analiz Hesaplama Motoru (RSI, SMA)
+# Teknik Analiz Hesaplama
 def calculate_signals(df):
-    if df.empty: return None, None, None, None
+    if df.empty: return 50, 0, 0, 0 # Varsayılan değerler
     
-    # Kapanış Fiyatları
     closes = df['close']
     
-    # 1. RSI Hesaplama (Manuel, kütüphanesiz)
+    # RSI Hesaplama
     delta = closes.diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
     rs = gain / loss
     rsi = 100 - (100 / (1 + rs))
-    current_rsi = rsi.iloc[-1]
+    current_rsi = rsi.iloc[-1] if not pd.isna(rsi.iloc[-1]) else 50
     
-    # 2. Market Waves (SMA Kesişimi Simülasyonu)
+    # Hareketli Ortalamalar
     sma_short = closes.rolling(window=7).mean().iloc[-1]
     sma_long = closes.rolling(window=25).mean().iloc[-1]
     
-    # 3. Beluga (Hacim Analizi)
+    # Hacim Analizi
     current_vol = df['volume'].iloc[-1]
     avg_vol = df['volume'].rolling(window=20).mean().iloc[-1]
     vol_spike = (current_vol / avg_vol) * 100 if avg_vol > 0 else 0
     
     return current_rsi, sma_short, sma_long, vol_spike
 
-# ==========================================
-# 3. SİNYAL OLUŞTURUCU
-# ==========================================
-def generate_pro_signals(symbol):
-    df = get_live_market_data(symbol)
+# Sinyal Oluşturucu
+def generate_pro_signals(symbol_pair):
+    # Binance sembol formatı (örn: BTCUSDT)
+    raw_symbol = symbol_pair.replace('/', '') 
+    df = get_live_market_data(raw_symbol)
+    
     if df.empty:
-        return {"price": 0, "rsi": 50, "trend": "NEUTRAL", "whale": "LOW"}
+        return {"price": 0, "rsi": 50, "trend": "WAITING", "whale": "SCANNING", "vol_pct": 0}
     
     rsi, sma_s, sma_l, vol = calculate_signals(df)
     current_price = df['close'].iloc[-1]
     
-    # Market Waves Kararı
+    # Karar Mekanizması
     if sma_s > sma_l: trend = "BULLISH WAVE 🟢"
     else: trend = "BEARISH WAVE 🔴"
     
-    # Beluga Kararı
-    whale_alert = "HIGH 🐋" if vol > 150 else "NORMAL 🌊"
+    whale_alert = "HIGH 🐋" if vol > 130 else "NORMAL 🌊"
     
     return {
         "price": current_price,
@@ -154,8 +157,46 @@ def generate_pro_signals(symbol):
     }
 
 # ==========================================
-# 4. KULLANICI SİSTEMİ
+# 3. KULLANICI SİSTEMİ
 # ==========================================
+def get_client():
+    try:
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        if "gcp_service_account" in st.secrets:
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
+            return gspread.authorize(creds)
+        return None
+    except: return None
+
+def check_and_fix_users_sheet():
+    client = get_client()
+    if not client: return None
+    try:
+        sheet = client.open("Crazytown_Journal")
+        try: return sheet.worksheet("Users")
+        except:
+            ws = sheet.add_worksheet(title="Users", rows="100", cols="4")
+            ws.append_row(["Username", "Password", "Name", "Plan"])
+            return ws
+    except: return None
+
+def register_user(username, password, name):
+    ws = check_and_fix_users_sheet()
+    if not ws: return "Connection Error"
+    users = ws.get_all_records()
+    for u in users:
+        if str(u.get('Username')) == username: return "Exists"
+    ws.append_row([username, password, name, "Free Member"])
+    return "Success"
+
+def login_user(username, password):
+    ws = check_and_fix_users_sheet()
+    if not ws: return None
+    users = ws.get_all_records()
+    for u in users:
+        if str(u.get('Username')) == username and str(u.get('Password')) == password: return u
+    return None
+
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 if 'user_info' not in st.session_state: st.session_state.user_info = {}
 if 'current_page' not in st.session_state: st.session_state.current_page = 'Home'
@@ -191,28 +232,34 @@ def show_auth(mode):
     with st.form("auth"):
         u = st.text_input("Username")
         p = st.text_input("Password", type="password")
+        if mode == "Register": n = st.text_input("Full Name")
         if st.form_submit_button("SUBMIT"):
             if mode == "Register":
-                st.success("Account Created! Login now.")
-                time.sleep(1); go_to("Login")
+                if u and p:
+                    res = register_user(u, p, n)
+                    if res == "Success": st.success("Created!"); time.sleep(1); go_to("Login")
+                    else: st.error(res)
             else:
                 if u == "admin" and p == "password123":
                     st.session_state.logged_in = True
                     st.session_state.user_info = {"Name": "Orhan Aliyev", "Plan": "ADMIN"}
                     st.rerun()
+                ud = login_user(u, p)
+                if ud:
+                    st.session_state.logged_in = True
+                    st.session_state.user_info = ud
+                    st.success("Welcome"); time.sleep(1); st.rerun()
                 else: st.error("Invalid Credentials")
     if st.button("Back"): go_to("Home")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- DASHBOARD (LIVE DATA) ---
+# --- DASHBOARD ---
 def show_dashboard():
-    # Canlı Verileri Çek (BTC ve ETH için)
+    # Canlı Verileri Çek
     btc_data = generate_pro_signals('BTC/USDT')
     eth_data = generate_pro_signals('ETH/USDT')
-    
     ui = st.session_state.user_info
     
-    # Status Bar
     st.markdown(f"""
     <div class="status-bar">
         <span><span style="height:8px;width:8px;background:#00ff00;border-radius:50%;display:inline-block;"></span> <b>SYSTEM ONLINE</b></span>
@@ -230,26 +277,15 @@ def show_dashboard():
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["⚡ PRO TOOLS", "📊 MARKET DATA", "🎓 ACADEMY", "🧮 CALCULATORS", "👑 VIP OFFICE"])
     
-    # TAB 1: PRO TOOLS (CANLI HESAPLAMA)
+    # TAB 1: PRO TOOLS
     with tab1:
-        st.markdown(f"""
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="margin:0;">⚡ LIVE ALGORITHMIC SIGNALS</h3>
-            <span style="color:#888; font-size:0.8rem;">Last Update: {datetime.now().strftime('%H:%M:%S')}</span>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Sinyal Yenileme Butonu
-        if st.button("🔄 REFRESH SIGNALS"):
-            st.rerun()
+        st.markdown(f"""<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><h3 style="margin:0;">⚡ LIVE ALGORITHMIC SIGNALS</h3><span style="color:#888;">Updated: {datetime.now().strftime('%H:%M:%S')}</span></div>""", unsafe_allow_html=True)
+        if st.button("🔄 REFRESH SIGNALS"): st.rerun()
 
         c1, c2 = st.columns(2)
-        
-        # BTC KARTI
         with c1:
             trend_col = "status-bullish" if "BULLISH" in btc_data['trend'] else "status-bearish"
             whale_col = "status-bullish" if "HIGH" in btc_data['whale'] else "status-neutral"
-            
             st.markdown(f"""
             <div class="tool-card" style="border-left-color: #f2a900;">
                 <div class="tool-title">BITCOIN (BTC) <span style="font-size:0.9rem;">${btc_data['price']:,.2f}</span></div>
@@ -263,11 +299,9 @@ def show_dashboard():
             </div>
             """, unsafe_allow_html=True)
 
-        # ETH KARTI
         with c2:
             trend_col = "status-bullish" if "BULLISH" in eth_data['trend'] else "status-bearish"
             whale_col = "status-bullish" if "HIGH" in eth_data['whale'] else "status-neutral"
-            
             st.markdown(f"""
             <div class="tool-card" style="border-left-color: #627eea;">
                 <div class="tool-title">ETHEREUM (ETH) <span style="font-size:0.9rem;">${eth_data['price']:,.2f}</span></div>
@@ -282,7 +316,7 @@ def show_dashboard():
             """, unsafe_allow_html=True)
 
         st.write("")
-        st.subheader("📈 LIVE CHART WITH INDICATORS")
+        st.subheader("📈 LIVE CHART")
         components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>{"width": "100%", "height": "600", "symbol": "BINANCE:BTCUSDT", "interval": "60", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "en", "enable_publishing": false, "hide_side_toolbar": false, "allow_symbol_change": true, "studies": ["STD;MACD", "STD;RSI", "STD;Stochastic"], "support_host": "https://www.tradingview.com"}</script></div>""", height=600)
 
     # TAB 2: MARKET DATA
@@ -309,22 +343,7 @@ def show_dashboard():
     # TAB 5: VIP OFFICE
     with tab5:
         st.markdown("<h2 style='text-align:center; color:#fff;'>UPGRADE YOUR ACCESS</h2>", unsafe_allow_html=True)
-        
-        # INCLUDED TOOLS LİSTESİ
-        st.markdown("""
-        <div class="glass-box" style="text-align:left;">
-            <h3 style="color:#00ff00;">🔥 INCLUDED PREMIUM INDICATORS (LIFETIME):</h3>
-            <ul style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; color:#fff; list-style:none;">
-                <li>✅ <b>Market Waves Pro</b> (Trend Finder)</li>
-                <li>✅ <b>Market Core Pro</b> (Structure)</li>
-                <li>✅ <b>Beluga Nautilus Pro</b> (Whale Vol)</li>
-                <li>✅ <b>Ultimate MACD</b> Package</li>
-                <li>✅ <b>Ultimate RSI</b> Package</li>
-                <li>✅ <b>Premium Divergence</b> (Reversal)</li>
-                <li>✅ <b>24/7</b> Support & Updates</li>
-            </ul>
-        </div><br>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class="glass-box" style="text-align:left;"><h3 style="color:#00ff00;">🔥 INCLUDED PREMIUM INDICATORS (LIFETIME):</h3><ul style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; color:#fff; list-style:none;"><li>✅ <b>Market Waves Pro</b> (Trend Finder)</li><li>✅ <b>Market Core Pro</b> (Structure)</li><li>✅ <b>Beluga Nautilus Pro</b> (Whale Vol)</li><li>✅ <b>Ultimate MACD</b> Package</li><li>✅ <b>Ultimate RSI</b> Package</li><li>✅ <b>Premium Divergence</b> (Reversal)</li><li>✅ <b>24/7</b> Support & Updates</li></ul></div><br>""", unsafe_allow_html=True)
 
         pc1, pc2, pc3 = st.columns(3)
         with pc1: st.markdown("""<div class="pricing-card"><h3>STARTER</h3><div style="font-size:2rem;color:#fff;">$30</div><p>/mo</p></div>""", unsafe_allow_html=True)
@@ -332,8 +351,6 @@ def show_dashboard():
         with pc3: st.markdown("""<div class="pricing-card"><h3>LIFETIME</h3><div style="font-size:2rem;color:#fff;">$250</div><p>once</p></div>""", unsafe_allow_html=True)
 
         st.write("")
-        
-        # ÖDEME ALANI
         c1, c2 = st.columns([1, 2])
         with c1:
             with st.expander("👤 SETTINGS", expanded=True):
@@ -342,18 +359,11 @@ def show_dashboard():
                 st.markdown("**Telegram:** [@Orhan1909](https://t.me/Orhan1909)")
 
         with c2:
-            st.markdown("""
-            <div class='payment-card'>
-                <h3 style='color:#ffd700; margin-top:0;'>💳 PAYMENT DETAILS</h3>
-                <div style='text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:5px; margin-bottom:5px;'><b>USDT (TRC20):</b><br><code style='color:#fff;'>TL8w... (YOUR_ADDR)</code></div>
-                <div style='text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:5px; margin-bottom:5px;'><b>IBAN:</b><br><code style='color:#fff;'>TR12 0000... (YOUR_IBAN)</code></div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown("""<div class='payment-card'><h3 style='color:#ffd700; margin-top:0;'>💳 PAYMENT DETAILS</h3><div style='text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:5px; margin-bottom:5px;'><b>USDT (TRC20):</b><br><code style='color:#fff;'>TL8w... (YOUR_ADDR)</code></div><div style='text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:5px; margin-bottom:5px;'><b>IBAN:</b><br><code style='color:#fff;'>TR12 0000... (YOUR_IBAN)</code></div></div>""", unsafe_allow_html=True)
             sel = st.selectbox("Plan", ["Starter", "VIP", "Lifetime"])
             tx = st.text_input("TX ID")
             if st.button("CONFIRM PAYMENT"): st.success("Notification sent to Admin!")
 
-    # KVKK
     st.markdown("<br><br>", unsafe_allow_html=True)
     with st.expander("⚖️ LEGAL | KVKK & PRIVACY POLICY"):
         st.write("CRAZYTOWN CAPITAL Privacy Policy & KVKK Text...")
