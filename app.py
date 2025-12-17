@@ -7,7 +7,7 @@ import time
 import random
 
 # ==========================================
-# 1. AYARLAR VE CSS (V1103 STABLE)
+# 1. AYARLAR VE CSS (V1200 UNSTOPPABLE)
 # ==========================================
 st.set_page_config(
     page_title="Crazytown Capital | Pro Terminal",
@@ -25,7 +25,7 @@ st.markdown("""
         .block-container {padding-top: 0rem; padding-bottom: 3rem; max-width: 100%; z-index: 2; position: relative;}
         .stApp {background-color: #0b0c10; background: radial-gradient(circle at center, #0f1115 0%, #000000 100%); color: #c5c6c7; font-family: 'Inter', sans-serif;}
         
-        /* KAYAN HABER BANDI */
+        /* KAYAN HABER BANDI (TICKER) */
         .ticker-wrap { width: 100%; overflow: hidden; background-color: #000; border-bottom: 1px solid #333; height: 30px; line-height: 30px; position: fixed; top: 0; left: 0; z-index: 9999; }
         .ticker { display: inline-block; white-space: nowrap; animation: ticker 40s linear infinite; }
         .ticker-item { display: inline-block; padding: 0 2rem; color: #66fcf1; font-size: 0.8rem; font-weight: bold; }
@@ -49,10 +49,12 @@ st.markdown("""
         .tool-card:hover { transform: translateX(5px); border-color: #ffd700; }
         .tool-title { font-weight: bold; color: #fff; font-size: 1.2rem; display: flex; justify-content: space-between; align-items:center; }
         
+        /* DETAYLI ANALİZ KUTUSU */
         .analysis-box { text-align: left; background: rgba(255,255,255,0.02) !important; border-left: 4px solid #ffd700; margin-top: 15px; }
         .analysis-text { color: #ccc; font-size: 0.9rem; margin-bottom: 8px; font-family: 'Consolas', monospace; }
         .analysis-header { color: #fff; font-weight: bold; margin-bottom: 15px; display: block; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; font-size: 1rem;}
 
+        /* RENKLER */
         .status-bullish { color: #00ff00; background: rgba(0,255,0,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight:bold;}
         .status-bearish { color: #ff4b4b; background: rgba(255,75,75,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight:bold;}
         .status-neutral { color: #ccc; background: rgba(200,200,200,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight:bold;}
@@ -69,11 +71,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Ticker
-st.markdown("""<div class="ticker-wrap"><div class="ticker"><span class="ticker-item">BTC: $98,450 (+2.4%)</span><span class="ticker-item">ETH: $3,200 (+1.1%)</span><span class="ticker-item">SOL: $145 (-0.5%)</span><span class="ticker-item">FED FAİZ KARARI BEKLENİYOR...</span><span class="ticker-item">BLACKROCK YENİ ETF BAŞVURUSU YAPTI</span><span class="ticker-item">CRAZYTOWN CAPITAL V11.0 SİSTEM AKTİF</span></div></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="ticker-wrap"><div class="ticker"><span class="ticker-item">BTC: $98,450 (+2.4%)</span><span class="ticker-item">ETH: $3,200 (+1.1%)</span><span class="ticker-item">SOL: $145 (-0.5%)</span><span class="ticker-item">FED FAİZ KARARI BEKLENİYOR...</span><span class="ticker-item">BLACKROCK YENİ ETF BAŞVURUSU YAPTI</span><span class="ticker-item">CRAZYTOWN CAPITAL V12.0 SİSTEM AKTİF</span></div></div>""", unsafe_allow_html=True)
 st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 2. SAĞLAMLAŞTIRILMIŞ VERİ MOTORU (CRASH PROOF)
+# 2. 4 KATMANLI VERİ MOTORU (DURDURULAMAZ)
 # ==========================================
 
 POPULAR_COINS = {
@@ -90,18 +92,7 @@ def get_all_coins_list():
     except: pass
     return []
 
-@st.cache_data(ttl=15)
-def get_binance_data(symbol):
-    try:
-        url = f"https://api.binance.com/api/v3/klines?symbol={symbol}USDT&interval=1h&limit=50"
-        resp = requests.get(url, timeout=3)
-        if resp.status_code == 200:
-            data = resp.json()
-            df = pd.DataFrame(data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'q_vol', 'num_trades', 'tb_base_vol', 'tb_quote_vol', 'ignore'])
-            return df['close'].astype(float).tolist()
-    except: pass
-    return []
-
+# --- KATMAN 1: COINGECKO ---
 @st.cache_data(ttl=30)
 def get_coingecko_data(coin_id):
     try:
@@ -110,6 +101,52 @@ def get_coingecko_data(coin_id):
         if resp.status_code == 200: return resp.json()
     except: pass
     return None
+
+# --- KATMAN 2: BINANCE (HIZLI) ---
+@st.cache_data(ttl=15)
+def get_binance_data(symbol):
+    try:
+        url = f"https://api.binance.com/api/v3/klines?symbol={symbol}USDT&interval=1h&limit=50"
+        resp = requests.get(url, timeout=2)
+        if resp.status_code == 200:
+            data = resp.json()
+            df = pd.DataFrame(data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'q_vol', 'num_trades', 'tb_base_vol', 'tb_quote_vol', 'ignore'])
+            return df['close'].astype(float).tolist()
+    except: pass
+    return []
+
+# --- KATMAN 3: KRAKEN (GÜVENİLİR YEDEK) ---
+@st.cache_data(ttl=15)
+def get_kraken_data(symbol):
+    try:
+        # Kraken Sembol Düzenlemesi (BTC -> XBT)
+        pair = 'XBTUSD' if symbol == 'BTC' else f'{symbol}USD'
+        url = f"https://api.kraken.com/0/public/OHLC?pair={pair}&interval=60"
+        resp = requests.get(url, timeout=2)
+        if resp.status_code == 200:
+            data = resp.json()
+            result_key = list(data['result'].keys())[0]
+            ohlc = data['result'][result_key]
+            # [time, open, high, low, close, vwap, volume, count]
+            closes = [float(x[4]) for x in ohlc]
+            return closes[-50:] # Son 50 veri
+    except: pass
+    return []
+
+# --- KATMAN 4: COINBASE (SON KALE) ---
+@st.cache_data(ttl=15)
+def get_coinbase_data(symbol):
+    try:
+        url = f"https://api.exchange.coinbase.com/products/{symbol}-USD/candles?granularity=3600"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        resp = requests.get(url, headers=headers, timeout=2)
+        if resp.status_code == 200:
+            data = resp.json()
+            # [time, low, high, open, close, volume]
+            closes = [float(x[4]) for x in data]
+            return closes[:50][::-1] # Coinbase tersten verir, düzelt
+    except: pass
+    return []
 
 def calculate_technical_analysis(prices):
     if not prices or len(prices) < 20: return 50, 0, 0
@@ -130,32 +167,35 @@ def analyze_any_coin(search_term):
     search_term = search_term.upper().strip()
     coin_id = None
     symbol = search_term
+    name = symbol
     
-    # 1. Popüler Listeden Bul
+    # --- AŞAMA 1: KİMLİK TESPİTİ ---
     if search_term in POPULAR_COINS:
         coin_id = POPULAR_COINS[search_term]
     
-    # 2. Bulamazsa Taramaya Geç
     if not coin_id:
+        # Geniş Arama
         all_coins = get_all_coins_list()
         for c in all_coins:
             if c['symbol'].upper() == search_term:
                 coin_id = c['id']; symbol = c['symbol'].upper(); break
-        if not coin_id:
+        if not coin_id and all_coins:
             for c in all_coins:
                 if c['name'].lower() == search_term.lower():
                     coin_id = c['id']; symbol = c['symbol'].upper(); break
     
-    # Fallback (BTC/ETH her zaman çalışsın)
+    # Fallback ID'ler (Garanti olsun)
     if search_term == 'BTC': coin_id = 'bitcoin'
     if search_term == 'ETH': coin_id = 'ethereum'
     
     price_data = []
     current_price = 0
     change_24h = 0
-    name = symbol
+    source_used = "Bilinmiyor"
 
-    # A. Veri Çekme (CoinGecko)
+    # --- AŞAMA 2: VERİ ÇEKME (ZİNCİRLEME REAKSİYON) ---
+    
+    # 1. Kaynak: CoinGecko
     if coin_id:
         cg_data = get_coingecko_data(coin_id)
         if cg_data:
@@ -165,26 +205,49 @@ def analyze_any_coin(search_term):
                 change_24h = md.get('price_change_percentage_24h', 0)
                 price_data = md.get('sparkline_7d', {}).get('price', [])
                 name = cg_data.get('name')
+                source_used = "CoinGecko"
             except: pass
 
-    # B. Veri Çekme (Binance Yedek)
+    # 2. Kaynak: Binance (Eğer 1 başarısızsa)
     if not price_data:
-        b_data = get_binance_data(symbol)
-        if b_data:
-            price_data = b_data
+        bin_data = get_binance_data(symbol)
+        if bin_data:
+            price_data = bin_data
             current_price = price_data[-1]
             try: change_24h = ((current_price - price_data[0])/price_data[0])*100
             except: change_24h = 0
-            name = symbol
+            source_used = "Binance"
+
+    # 3. Kaynak: Kraken (Eğer 1 ve 2 başarısızsa)
+    if not price_data:
+        krak_data = get_kraken_data(symbol)
+        if krak_data:
+            price_data = krak_data
+            current_price = price_data[-1]
+            try: change_24h = ((current_price - price_data[0])/price_data[0])*100
+            except: change_24h = 0
+            source_used = "Kraken"
+
+    # 4. Kaynak: Coinbase (Son çare)
+    if not price_data:
+        cb_data = get_coinbase_data(symbol)
+        if cb_data:
+            price_data = cb_data
+            current_price = price_data[-1]
+            try: change_24h = ((current_price - price_data[0])/price_data[0])*100
+            except: change_24h = 0
+            source_used = "Coinbase"
 
     if not price_data: return None
 
-    # Analiz
+    # --- AŞAMA 3: ANALİZ ---
     rsi, sma_s, sma_l = calculate_technical_analysis(price_data)
     reasons = []
-    score = 50
+    score = 50 
     
-    # Trend Logic
+    reasons.append(f"📡 **Veri Kaynağı:** {source_used} üzerinden anlık çekildi.")
+
+    # Trend
     if sma_s > sma_l: 
         trend = "BOĞA (YÜKSELİŞ) 🟢"
         reasons.append(f"✅ **Trend:** Fiyat (${current_price:,.4f}) ortalamaların üzerinde.")
@@ -194,15 +257,31 @@ def analyze_any_coin(search_term):
         reasons.append(f"🔻 **Trend:** Fiyat (${current_price:,.4f}) baskı altında.")
         score -= 20
 
-    # RSI Logic
-    if rsi < 30:
-        reasons.append(f"🔥 **RSI ({rsi:.1f}):** Aşırı SATIM bölgesinde. Dip sinyali.")
+    # RSI
+    if rsi < 30: 
+        reasons.append(f"🔥 **RSI ({rsi:.1f}):** Aşırı SATIM (<30). Güçlü Dip Sinyali.")
         score += 30
-    elif rsi > 70:
-        reasons.append(f"⚠️ **RSI ({rsi:.1f}):** Aşırı ALIM bölgesinde. Dikkat.")
+    elif rsi > 70: 
+        reasons.append(f"⚠️ **RSI ({rsi:.1f}):** Aşırı ALIM (>70). Düzeltme ihtimali.")
         score -= 30
+    elif 45 <= rsi <= 55:
+        reasons.append(f"😴 **RSI ({rsi:.1f}):** Tam nötr bölge.")
     else:
-        reasons.append(f"ℹ️ **RSI ({rsi:.1f}):** Nötr bölgede.")
+        reasons.append(f"ℹ️ **RSI ({rsi:.1f}):** Normal bölgede.")
+        if rsi > 50: score += 5
+        else: score -= 5
+
+    # Momentum
+    if change_24h > 5:
+        reasons.append(f"🚀 **Momentum:** 24s Değişim %{change_24h:.1f}. Talep güçlü.")
+        score += 15
+    elif change_24h < -5:
+        if rsi < 35:
+            reasons.append(f"🩸 **Fırsat:** Sert düşüş var ama RSI dipte.")
+            score += 5
+        else:
+            reasons.append(f"🔻 **Baskı:** 24s Değişim %{change_24h:.1f}.")
+            score -= 15
 
     score = max(0, min(100, score))
     
@@ -246,6 +325,7 @@ def show_home():
     c1, c2 = st.columns(2)
     with c1: st.markdown("""<div class="glass-box"><h3>⚡ Market Waves Pro</h3><p>Tüm Coinler İçin Yapay Zeka Analizi</p></div>""", unsafe_allow_html=True)
     with c2: st.markdown("""<div class="glass-box"><h3>🐋 Detaylı Raporlama</h3><p>Destek, Direnç ve Neden-Sonuç Analizi</p></div>""", unsafe_allow_html=True)
+    
     st.markdown("<br><h3 style='text-align:center; color:#fff;'>ÜYELİK PAKETLERİ</h3>", unsafe_allow_html=True)
     pc1, pc2, pc3 = st.columns(3)
     with pc1: st.markdown("""<div class="pricing-card"><h3>BAŞLANGIÇ</h3><div style="font-size:2rem;color:#fff;">$30</div><p>/ay</p></div>""", unsafe_allow_html=True)
@@ -279,7 +359,7 @@ def show_dashboard():
     <div class="status-bar">
         <span><span style="height:8px;width:8px;background:#00ff00;border-radius:50%;display:inline-block;"></span> <b>SİSTEM AKTİF</b></span>
         <span>|</span>
-        <span>VERİ: <b>EVRENSEL (10.000+ COIN)</b></span>
+        <span>VERİ: <b>EVRENSEL (MULTI-SOURCE)</b></span>
         <span>|</span>
         <span>KULLANICI: <b>{ui.get('Name')}</b></span>
     </div>
@@ -293,7 +373,7 @@ def show_dashboard():
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["⚡ DETAYLI ANALİZ", "📊 PİYASA VERİLERİ", "🎓 AKADEMİ", "🧮 HESAP MAKİNESİ", "👑 VIP OFİS"])
     
     with tab1:
-        st.markdown(f"""<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><h3 style="margin:0;">⚡ EVRENSEL COIN TARAYICISI</h3><span style="color:#888;">AI Engine V11.0</span></div>""", unsafe_allow_html=True)
+        st.markdown(f"""<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><h3 style="margin:0;">⚡ EVRENSEL COIN TARAYICISI</h3><span style="color:#888;">AI Engine V12.0</span></div>""", unsafe_allow_html=True)
         
         st.info("💡 İPUCU: Dünyadaki herhangi bir coini (Resolv, Bonk, BTC) aratabilirsiniz.")
         search_query = st.text_input("COIN ARA (İsim veya Sembol)", placeholder="Örn: Resolv, BTC, DOGE...").strip()
