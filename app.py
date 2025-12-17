@@ -7,7 +7,7 @@ import time
 import random
 
 # ==========================================
-# 1. AYARLAR VE CSS
+# 1. AYARLAR VE CSS (V900 MASTER)
 # ==========================================
 st.set_page_config(
     page_title="Crazytown Capital | Pro Terminal",
@@ -61,7 +61,6 @@ st.markdown("""
             margin-bottom: 20px;
         }
         
-        /* ANALİZ KARTI ÖZEL */
         .tool-card { text-align: left; border-left: 4px solid #66fcf1; transition: transform 0.3s ease; position:relative; overflow:hidden;}
         .tool-card:hover { transform: translateX(5px); border-color: #ffd700; }
         .tool-title { font-weight: bold; color: #fff; font-size: 1.2rem; display: flex; justify-content: space-between; align-items:center; }
@@ -70,11 +69,7 @@ st.markdown("""
         .status-bearish { color: #ff4b4b; background: rgba(255,75,75,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight:bold;}
         .status-neutral { color: #ccc; background: rgba(200,200,200,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight:bold;}
 
-        /* ARAMA ÇUBUĞU */
-        .search-container { margin-bottom: 20px; }
-        .stTextInput label { color: #66fcf1 !important; font-weight: bold; }
-
-        /* DİĞERLERİ */
+        /* INPUT VE BUTONLAR */
         .stTextInput input { background-color: #15161a !important; color: #fff !important; border: 1px solid #2d3845 !important; border-radius: 5px !important; }
         .stButton button { background-color: #66fcf1 !important; color: #0b0c10 !important; font-weight: bold !important; border: none !important; border-radius: 5px !important; width: 100% !important; padding: 12px !important; transition: all 0.3s ease; }
         .stButton button:hover { background-color: #fff !important; box-shadow: 0 0 15px #66fcf1; transform: translateY(-2px); }
@@ -89,27 +84,55 @@ st.markdown("""
 st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 2. GELİŞMİŞ ANALİZ MOTORU (SEARCH ENGINE)
+# 2. ÇOKLU VERİ MOTORU (MULTI-SOURCE ENGINE)
 # ==========================================
 
 @st.cache_data(ttl=10)
 def get_live_market_data(symbol):
-    # Kullanıcı ne yazarsa yazsın (örn: 'doge', 'DOGE', 'DoGe') -> 'DOGE' yap
-    symbol = symbol.upper()
+    symbol = symbol.upper().replace("USDT", "").replace("USD", "")
+    
+    # 1. DENEME: BINANCE API (En Hızlı)
     try:
-        # Binance API
-        pair = f"{symbol}USDT"
-        url = f"https://api.binance.com/api/v3/klines?symbol={pair}&interval=1h&limit=50"
-        response = requests.get(url, timeout=3)
+        url = f"https://api.binance.com/api/v3/klines?symbol={symbol}USDT&interval=1h&limit=50"
+        response = requests.get(url, timeout=2)
         if response.status_code == 200:
             data = response.json()
             df = pd.DataFrame(data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'q_vol', 'num_trades', 'tb_base_vol', 'tb_quote_vol', 'ignore'])
             df['close'] = df['close'].astype(float)
             df['volume'] = df['volume'].astype(float)
             return df
-    except:
-        return pd.DataFrame()
-    return pd.DataFrame()
+    except: pass # Hata verirse sessizce geç
+
+    # 2. DENEME: COINBASE API (En Güvenilir Yedek)
+    try:
+        url = f"https://api.exchange.coinbase.com/products/{symbol}-USD/candles?granularity=3600"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(url, headers=headers, timeout=2)
+        if response.status_code == 200:
+            data = response.json()
+            df = pd.DataFrame(data, columns=['timestamp', 'low', 'high', 'open', 'close', 'volume'])
+            df['close'] = df['close'].astype(float)
+            df['volume'] = df['volume'].astype(float)
+            return df.iloc[::-1].tail(50) # Ters çevir
+    except: pass
+
+    # 3. DENEME: KRAKEN API (Son Kale)
+    try:
+        # Kraken sembol düzeltmesi (BTC -> XBT)
+        k_sym = "XBT" if symbol == "BTC" else symbol
+        url = f"https://api.kraken.com/0/public/OHLC?pair={k_sym}USD&interval=60"
+        response = requests.get(url, timeout=2)
+        if response.status_code == 200:
+            data = response.json()
+            result_key = list(data['result'].keys())[0]
+            ohlc = data['result'][result_key]
+            df = pd.DataFrame(ohlc, columns=['timestamp', 'open', 'high', 'low', 'close', 'vwap', 'volume', 'count'])
+            df['close'] = df['close'].astype(float)
+            df['volume'] = df['volume'].astype(float)
+            return df.tail(50)
+    except: pass
+
+    return pd.DataFrame() # Hiçbiri çalışmazsa boş dön
 
 def calculate_signals(df):
     if df.empty: return 50, 0, 0, 0
@@ -129,37 +152,25 @@ def calculate_signals(df):
 
 def analyze_coin(symbol):
     df = get_live_market_data(symbol)
-    if df.empty:
-        return None # Hata durumu
+    if df.empty: return None
     
     rsi, sma_s, sma_l, vol = calculate_signals(df)
     current_price = df['close'].iloc[-1]
     
-    # 1. TREND ANALİZİ
     if sma_s > sma_l: trend = "BOĞA (YÜKSELİŞ) 🟢"
     else: trend = "AYI (DÜŞÜŞ) 🔴"
     
-    # 2. HACİM ANALİZİ
     whale_alert = "YÜKSEK 🐋" if vol > 130 else "NORMAL 🌊"
     
-    # 3. GÜVEN SKORU HESAPLAMA (AI SCORE)
-    score = 50 # Başlangıç nötr
-    
-    # Trend Puanı
+    # Güven Skoru
+    score = 50
     if sma_s > sma_l: score += 20
     else: score -= 20
-    
-    # RSI Puanı
-    if rsi < 30: score += 25 # Aşırı satım, dönüş ihtimali
-    elif rsi > 70: score -= 25 # Aşırı alım, düşüş ihtimali
-    
-    # Hacim Puanı
-    if vol > 150: score += 10 # Hacim onayı
-    
-    # Skor Sınırları (0-100)
+    if rsi < 30: score += 25
+    elif rsi > 70: score -= 25
+    if vol > 150: score += 10
     score = max(0, min(100, score))
     
-    # 4. KARAR
     if score >= 75: decision = "GÜÇLÜ AL 🚀"
     elif score >= 60: decision = "ALIM FIRSATI ✅"
     elif score <= 25: decision = "GÜÇLÜ SAT 📉"
@@ -177,8 +188,11 @@ def analyze_coin(symbol):
     }
 
 # ==========================================
-# 3. KULLANICI SİSTEMİ (DEMO)
+# 3. KULLANICI İŞLEMLERİ
 # ==========================================
+def register_user(u, p, n): return "Success" # Demo
+def login_user(u, p): return {"Name": u, "Plan": "Free"} # Demo
+
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 if 'user_info' not in st.session_state: st.session_state.user_info = {}
 if 'current_page' not in st.session_state: st.session_state.current_page = 'Home'
@@ -232,7 +246,7 @@ def show_dashboard():
     <div class="status-bar">
         <span><span style="height:8px;width:8px;background:#00ff00;border-radius:50%;display:inline-block;"></span> <b>SİSTEM AKTİF</b></span>
         <span>|</span>
-        <span>VERİ: <b>CANLI (BINANCE)</b></span>
+        <span>VERİ: <b>CANLI (MULTI-SOURCE)</b></span>
         <span>|</span>
         <span>KULLANICI: <b>{ui.get('Name')}</b></span>
     </div>
@@ -245,21 +259,18 @@ def show_dashboard():
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["⚡ PRO ARAÇLAR (ARA & BUL)", "📊 PİYASA VERİLERİ", "🎓 AKADEMİ", "🧮 HESAP MAKİNESİ", "👑 VIP OFİS"])
     
-    # TAB 1: PRO ARAÇLAR (ARAMA MOTORU)
+    # TAB 1: PRO ARAÇLAR
     with tab1:
         st.markdown(f"""<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><h3 style="margin:0;">⚡ YAPAY ZEKA ANALİZ MOTORU</h3><span style="color:#888;">{datetime.now().strftime('%H:%M')}</span></div>""", unsafe_allow_html=True)
         
-        # --- ARAMA ÇUBUĞU ---
-        st.markdown("<div class='search-container'>", unsafe_allow_html=True)
-        search_query = st.text_input("COIN ARA (Örn: BTC, ETH, DOGE, PEPE, AVAX)", placeholder="Sembol girin ve Enter'a basın...").upper()
-        st.markdown("</div>", unsafe_allow_html=True)
-
+        # Arama Kutusu
+        search_query = st.text_input("COIN ARA (Örn: BTC, ETH, DOGE, PEPE)", placeholder="Sembol girin ve Enter'a basın...").upper()
+        
         if search_query:
-            with st.spinner(f"{search_query} için Binance verileri taranıyor..."):
+            with st.spinner(f"{search_query} için veriler taranıyor (Binance/Coinbase/Kraken)..."):
                 data = analyze_coin(search_query)
                 
             if data:
-                # Dinamik Renkler
                 card_border = "#00ff00" if data['score'] >= 60 else "#ff4b4b" if data['score'] <= 40 else "#ffd700"
                 trend_col = "status-bullish" if "BOĞA" in data['trend'] else "status-bearish" if "AYI" in data['trend'] else "status-neutral"
                 whale_col = "status-bullish" if "YÜKSEK" in data['whale'] else "status-neutral"
@@ -272,22 +283,10 @@ def show_dashboard():
                     </div>
                     <hr style="border-color:rgba(255,255,255,0.1);">
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <div>
-                            <p style="color:#ccc; margin:0; font-size:0.9rem;">Piyasa Yönü</p>
-                            <span class="{trend_col}">{data['trend']}</span>
-                        </div>
-                        <div>
-                            <p style="color:#ccc; margin:0; font-size:0.9rem;">Balina Aktivitesi</p>
-                            <span class="{whale_col}">{data['whale']}</span>
-                        </div>
-                        <div>
-                            <p style="color:#ccc; margin:0; font-size:0.9rem;">RSI (Güç Endeksi)</p>
-                            <b style="color:#fff;">{data['rsi']:.2f}</b>
-                        </div>
-                        <div>
-                            <p style="color:#ccc; margin:0; font-size:0.9rem;">Hacim Artışı</p>
-                            <b style="color:#fff;">%{data['vol_pct']:.0f}</b>
-                        </div>
+                        <div><p style="color:#ccc; margin:0; font-size:0.9rem;">Piyasa Yönü</p><span class="{trend_col}">{data['trend']}</span></div>
+                        <div><p style="color:#ccc; margin:0; font-size:0.9rem;">Balina Aktivitesi</p><span class="{whale_col}">{data['whale']}</span></div>
+                        <div><p style="color:#ccc; margin:0; font-size:0.9rem;">RSI (Güç Endeksi)</p><b style="color:#fff;">{data['rsi']:.2f}</b></div>
+                        <div><p style="color:#ccc; margin:0; font-size:0.9rem;">Hacim Artışı</p><b style="color:#fff;">%{data['vol_pct']:.0f}</b></div>
                     </div>
                     <br>
                     <p style="color:#ccc; margin:0; font-size:0.9rem;">Yapay Zeka Güven Skoru:</p>
@@ -301,21 +300,17 @@ def show_dashboard():
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Sinyal Güçlüyse Telegram Butonu Göster
+                # Telegram Butonu (Sadece güçlü sinyallerde)
                 if data['score'] >= 75 or data['score'] <= 25:
                     st.write("")
-                    st.markdown(f"""<a href="https://t.me/share/url?url=CRAZYTOWN ANALİZ: {search_query} - Karar: {data['decision']} (Fiyat: {data['price']})" target="_blank" style="text-decoration:none;"><button style="background:#0088cc; color:white; width:100%; padding:10px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">✈️ TELEGRAM'A SİNYAL GÖNDER</button></a>""", unsafe_allow_html=True)
+                    st.markdown(f"""<a href="https://t.me/share/url?url=CRAZYTOWN ANALİZ: {search_query} - Karar: {data['decision']} (Fiyat: {data['price']})" target="_blank"><button style="background:#0088cc; color:white; width:100%; padding:10px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">✈️ TELEGRAM'A GÖNDER</button></a>""", unsafe_allow_html=True)
                 
-                # TradingView Grafiği (Dinamik)
                 st.write("")
                 components.html(f"""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>{{"width": "100%", "height": "500", "symbol": "BINANCE:{search_query}USDT", "interval": "60", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "tr", "enable_publishing": false, "hide_side_toolbar": false, "allow_symbol_change": true, "studies": ["STD;MACD", "STD;RSI"], "support_host": "https://www.tradingview.com"}}</script></div>""", height=500)
-
             else:
-                st.error("Coin bulunamadı veya listelenmiyor. Lütfen doğru sembolü girin (Örn: BTC, ETH).")
-        
+                st.error("Coin bulunamadı. Farklı bir sembol deneyin (örn: BTC, ETH).")
         else:
-            st.info("👆 Analiz etmek için yukarıdaki kutuya bir coin ismi yazın.")
-            # Varsayılan olarak BTC ve ETH kartlarını göster (Boş kalmasın)
+            # Varsayılan Kartlar
             c1, c2 = st.columns(2)
             btc_d = analyze_coin("BTC")
             eth_d = analyze_coin("ETH")
@@ -376,7 +371,7 @@ def show_dashboard():
 
     st.markdown("<br><br>", unsafe_allow_html=True)
     with st.expander("⚖️ YASAL | KVKK & GİZLİLİK POLİTİKASI"):
-        st.markdown("### KİŞİSEL VERİLERİN KORUNMASI KANUNU (KVKK) AYDINLATMA METNİ\nCRAZYTOWN CAPITAL olarak...")
+        st.write("CRAZYTOWN CAPITAL Privacy Policy & KVKK Text...")
 
 # ==========================================
 # 5. BAŞLAT
