@@ -7,7 +7,7 @@ import time
 import random
 
 # ==========================================
-# 1. AYARLAR VE CSS
+# 1. AYARLAR VE CSS (V1100 GOLD)
 # ==========================================
 st.set_page_config(
     page_title="Crazytown Capital | Pro Terminal",
@@ -19,19 +19,30 @@ st.set_page_config(
 # --- CSS TASARIMI ---
 st.markdown("""
     <style>
+        /* GENEL YAPI */
         div[class^="viewerBadge_container"], .viewerBadge_container__1QSob, #MainMenu, header, footer {display: none !important;}
         .stApp > header {display: none !important;}
-        .block-container {padding-top: 1rem; padding-bottom: 3rem; max-width: 100%; z-index: 2; position: relative;}
+        .block-container {padding-top: 0rem; padding-bottom: 3rem; max-width: 100%; z-index: 2; position: relative;}
         .stApp {background-color: #0b0c10; background: radial-gradient(circle at center, #0f1115 0%, #000000 100%); color: #c5c6c7; font-family: 'Inter', sans-serif;}
         
+        /* KAYAN HABER BANDI (TICKER) */
+        .ticker-wrap {
+            width: 100%; overflow: hidden; background-color: #000; border-bottom: 1px solid #333; height: 30px; line-height: 30px; position: fixed; top: 0; left: 0; z-index: 9999;
+        }
+        .ticker { display: inline-block; white-space: nowrap; animation: ticker 40s linear infinite; }
+        .ticker-item { display: inline-block; padding: 0 2rem; color: #66fcf1; font-size: 0.8rem; font-weight: bold; }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        /* ARKA PLAN EFEKTLERİ */
         .area { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
         .circles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
-        .circles li { position: absolute; display: block; list-style: none; width: 20px; height: 20px; background: rgba(102, 252, 241, 0.08); animation: animate 25s linear infinite; bottom: -150px; border: 1px solid rgba(102, 252, 241, 0.2); transform: rotate(45deg); }
+        .circles li { position: absolute; display: block; list-style: none; width: 20px; height: 20px; background: rgba(102, 252, 241, 0.05); animation: animate 25s linear infinite; bottom: -150px; border: 1px solid rgba(102, 252, 241, 0.1); transform: rotate(45deg); }
         .circles li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
         .circles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
         .circles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
         @keyframes animate { 0%{ transform: translateY(0) rotate(45deg); opacity: 0; } 50%{ opacity: 0.5; } 100%{ transform: translateY(-1000px) rotate(720deg); opacity: 0; } }
 
+        /* CAM KUTULAR */
         .glass-box, .metric-container, .pricing-card, .login-container, .tool-card, .payment-card, .analysis-box {
             background: rgba(20, 25, 30, 0.85) !important; backdrop-filter: blur(15px); border: 1px solid rgba(102, 252, 241, 0.2); border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); margin-bottom: 20px;
         }
@@ -40,10 +51,12 @@ st.markdown("""
         .tool-card:hover { transform: translateX(5px); border-color: #ffd700; }
         .tool-title { font-weight: bold; color: #fff; font-size: 1.2rem; display: flex; justify-content: space-between; align-items:center; }
         
-        .analysis-box { text-align: left; background: rgba(0,0,0,0.4) !important; border-left: 4px solid #ffd700; }
-        .analysis-text { color: #ccc; font-size: 0.95rem; line-height: 1.6; }
-        .analysis-header { color: #fff; font-weight: bold; margin-bottom: 10px; display: block; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;}
+        /* DETAYLI ANALİZ KUTUSU */
+        .analysis-box { text-align: left; background: rgba(255,255,255,0.02) !important; border-left: 4px solid #ffd700; margin-top: 15px; }
+        .analysis-text { color: #ccc; font-size: 0.9rem; margin-bottom: 8px; font-family: 'Consolas', monospace; }
+        .analysis-header { color: #fff; font-weight: bold; margin-bottom: 15px; display: block; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; font-size: 1rem;}
 
+        /* RENKLER */
         .status-bullish { color: #00ff00; background: rgba(0,255,0,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight:bold;}
         .status-bearish { color: #ff4b4b; background: rgba(255,75,75,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight:bold;}
         .status-neutral { color: #ccc; background: rgba(200,200,200,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight:bold;}
@@ -51,7 +64,7 @@ st.markdown("""
         .stTextInput input { background-color: #15161a !important; color: #fff !important; border: 1px solid #2d3845 !important; border-radius: 5px !important; }
         .stButton button { background-color: #66fcf1 !important; color: #0b0c10 !important; font-weight: bold !important; border: none !important; border-radius: 5px !important; width: 100% !important; padding: 12px !important; transition: all 0.3s ease; }
         .stButton button:hover { background-color: #fff !important; box-shadow: 0 0 15px #66fcf1; transform: translateY(-2px); }
-        .stTabs [data-baseweb="tab-list"] { gap: 10px; border-bottom: 1px solid #333; }
+        .stTabs [data-baseweb="tab-list"] { gap: 10px; border-bottom: 1px solid #333; margin-top: 20px;}
         .stTabs [data-baseweb="tab"] { height: 50px; color: #888; font-weight: 600; border: none; }
         .stTabs [aria-selected="true"] { color: #66fcf1 !important; border-bottom: 2px solid #66fcf1 !important; background: rgba(102,252,241,0.05); }
         
@@ -59,10 +72,24 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# KAYAN HABER BANDI (BLOOMBERG STYLE)
+st.markdown("""
+<div class="ticker-wrap">
+<div class="ticker">
+<span class="ticker-item">BTC: $98,450 (+2.4%)</span>
+<span class="ticker-item">ETH: $3,200 (+1.1%)</span>
+<span class="ticker-item">SOL: $145 (-0.5%)</span>
+<span class="ticker-item">FED FAİZ KARARI BEKLENİYOR...</span>
+<span class="ticker-item">BLACKROCK YENİ ETF BAŞVURUSU YAPTI</span>
+<span class="ticker-item">CRAZYTOWN CAPITAL V11.0 SİSTEM AKTİF</span>
+</div>
+</div>
+""", unsafe_allow_html=True)
+
 st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 2. EVRENSEL VERİ MOTORU (COINGECKO + BINANCE)
+# 2. EVRENSEL VERİ MOTORU (MULTI-SOURCE)
 # ==========================================
 
 @st.cache_data(ttl=60)
@@ -86,10 +113,10 @@ def get_coingecko_data(coin_id):
     return None
 
 def calculate_technical_analysis(price_data):
-    if not price_data: return 50, 0, 0, 0
+    if not price_data: return 50, 0, 0
     
-    prices = price_data # Liste: [fiyat1, fiyat2...]
-    if len(prices) < 14: return 50, 0, 0, 0
+    prices = price_data 
+    if len(prices) < 14: return 50, 0, 0
     
     s = pd.Series(prices)
     
@@ -110,11 +137,11 @@ def calculate_technical_analysis(price_data):
 def analyze_any_coin(search_term):
     search_term = search_term.lower().strip()
     
-    # 1. Coin ID Bulma
     all_coins = get_all_coins_list()
     coin_id = None
     symbol = search_term.upper()
     
+    # Coin bulma mantığı
     for c in all_coins:
         if c['symbol'].lower() == search_term:
             coin_id = c['id']; symbol = c['symbol'].upper(); break
@@ -129,7 +156,6 @@ def analyze_any_coin(search_term):
     
     if not coin_id: return None
 
-    # 2. Verileri Çek
     data = get_coingecko_data(coin_id)
     if not data: return None
     
@@ -138,58 +164,52 @@ def analyze_any_coin(search_term):
     price_change_24h = market_data.get('price_change_percentage_24h', 0)
     sparkline = market_data.get('sparkline_7d', {}).get('price', [])
     
-    # 3. Teknik Analiz
     rsi, sma_s, sma_l = calculate_technical_analysis(sparkline)
     
-    # 4. YENİ GELİŞMİŞ ALGORİTMA (SMART LOGIC V1001)
+    # --- AKILLI ANALİZ MOTORU (KANITLI) ---
     reasons = []
-    score = 50 # Nötr başlangıç
+    score = 50 
     
-    # A. TREND ANALİZİ
+    # A. TREND
     if sma_s > sma_l: 
         trend = "BOĞA (YÜKSELİŞ) 🟢"
-        reasons.append(f"✅ **Trend:** Fiyat kısa vadeli ortalamaların üzerinde (SMA7 > SMA25).")
+        reasons.append(f"✅ **Trend:** Fiyat (${current_price:,.2f}), 25 günlük ortalamanın (${sma_l:,.2f}) üzerinde seyrediyor.")
         score += 20
     else: 
         trend = "AYI (DÜŞÜŞ) 🔴"
-        reasons.append(f"🔻 **Trend:** Fiyat baskı altında, ortalamaların altında seyrediyor.")
+        reasons.append(f"🔻 **Trend:** Fiyat (${current_price:,.2f}), 25 günlük ortalamanın (${sma_l:,.2f}) altında baskılanıyor.")
         score -= 20
 
-    # B. RSI ANALİZİ (DAHA SEÇİCİ)
+    # B. RSI
     if rsi < 30: 
-        reasons.append(f"🔥 **RSI ({rsi:.1f}):** Aşırı SATIM bölgesinde! (Güçlü Dip Sinyali).")
+        reasons.append(f"🔥 **RSI ({rsi:.1f}):** Aşırı SATIM bölgesi (<30). İstatistiksel olarak 'Dip' sinyali.")
         score += 30
     elif rsi > 70: 
-        reasons.append(f"⚠️ **RSI ({rsi:.1f}):** Aşırı ALIM bölgesinde! (Düzeltme Gelebilir).")
+        reasons.append(f"⚠️ **RSI ({rsi:.1f}):** Aşırı ALIM bölgesi (>70). Düzeltme ihtimali yüksek.")
         score -= 30
     elif 45 <= rsi <= 55:
-        reasons.append(f"😴 **RSI ({rsi:.1f}):** Tamamen nötr. Kararsız piyasa.")
-        # Puan değiştirme, bekle
+        reasons.append(f"😴 **RSI ({rsi:.1f}):** Tam nötr bölge. Piyasa yön arayışında.")
     else:
-        reasons.append(f"ℹ️ **RSI ({rsi:.1f}):** Normal bölgede.")
-        # Hafif puan değişimi
+        reasons.append(f"ℹ️ **RSI ({rsi:.1f}):** Normal bölgede seyrediyor.")
         if rsi > 50: score += 5
         else: score -= 5
 
-    # C. HACİM/DEĞİŞİM ANALİZİ
+    # C. HACİM
     if price_change_24h > 5:
-        reasons.append(f"🚀 **Momentum:** 24 saatte %{price_change_24h:.1f} artış! Talep güçlü.")
+        reasons.append(f"🚀 **Momentum:** Son 24 saatte %{price_change_24h:.1f} artış var. Talep güçlü.")
         score += 15
     elif price_change_24h < -5:
-        # Eğer RSI düşükse (Dip) ve düşüş sertse -> Puanı çok kırma (Fırsat olabilir)
         if rsi < 35:
-            reasons.append(f"🩸 **Fırsat:** Sert düşüş (%{price_change_24h:.1f}) ama RSI dipte.")
+            reasons.append(f"🩸 **Fırsat:** Sert düşüş (%{price_change_24h:.1f}) yaşandı ama RSI dipte. Dönüş yakındır.")
             score += 5
         else:
             reasons.append(f"🔻 **Baskı:** 24 saatte %{abs(price_change_24h):.1f} değer kaybı.")
             score -= 15
     else:
-        score += 0 # Yatay
+        score += 0
 
-    # Skor Sınırları
     score = max(0, min(100, score))
     
-    # Karar
     if score >= 80: decision = "GÜÇLÜ AL 🚀"
     elif score >= 60: decision = "ALIM FIRSATI ✅"
     elif score <= 20: decision = "GÜÇLÜ SAT 📉"
@@ -198,6 +218,12 @@ def analyze_any_coin(search_term):
 
     support = current_price * 0.90
     resistance = current_price * 1.10
+    
+    # R/R Ratio (Risk/Ödül)
+    try:
+        risk_reward = (resistance - current_price) / (current_price - support)
+    except:
+        risk_reward = 0
 
     return {
         "name": data.get('name'),
@@ -210,7 +236,8 @@ def analyze_any_coin(search_term):
         "decision": decision,
         "reasons": reasons,
         "support": support,
-        "resistance": resistance
+        "resistance": resistance,
+        "rr_ratio": risk_reward
     }
 
 # ==========================================
@@ -224,7 +251,7 @@ def go_to(page): st.session_state.current_page = page; st.rerun()
 
 def show_home():
     components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}, {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"}, {"proName": "BINANCE:SOLUSDT", "title": "Solana"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "tr"}</script></div>""", height=50)
-    st.markdown('<div class="hero-title">CRAZYTOWN CAPITAL</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-title" style="margin-top:20px;">CRAZYTOWN CAPITAL</div>', unsafe_allow_html=True)
     st.markdown('<div class="hero-sub">EVRENSEL KRİPTO ANALİZ TERMİNALİ</div>', unsafe_allow_html=True)
     c1, c2, c3, c4, c5 = st.columns([1,1,1,1,1])
     with c2: 
@@ -284,13 +311,13 @@ def show_dashboard():
     
     # TAB 1: DETAYLI ANALİZ
     with tab1:
-        st.markdown(f"""<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><h3 style="margin:0;">⚡ EVRENSEL COIN TARAYICISI</h3><span style="color:#888;">AI Engine V10.2</span></div>""", unsafe_allow_html=True)
+        st.markdown(f"""<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><h3 style="margin:0;">⚡ EVRENSEL COIN TARAYICISI</h3><span style="color:#888;">AI Engine V11.0</span></div>""", unsafe_allow_html=True)
         
-        st.info("💡 İPUCU: İstediğiniz herhangi bir coini aratabilirsiniz. Örn: Resolv, Bonk, Pepe, Kaspa, Bitcoin...")
+        st.info("💡 İPUCU: Dünyadaki herhangi bir coini (Resolv, Bonk, BTC) aratabilirsiniz.")
         search_query = st.text_input("COIN ARA (İsim veya Sembol)", placeholder="Örn: Resolv, BTC, DOGE...").strip()
         
         if search_query:
-            with st.spinner(f"'{search_query}' için küresel veriler toplanıyor ve analiz ediliyor..."):
+            with st.spinner(f"'{search_query}' için küresel veriler toplanıyor..."):
                 data = analyze_any_coin(search_query)
                 
             if data:
@@ -331,6 +358,7 @@ def show_dashboard():
                 st.write("")
                 st.markdown("<div class='analysis-box'>", unsafe_allow_html=True)
                 st.markdown("<span class='analysis-header'>📋 DETAYLI ANALİZ RAPORU & NEDENLERİ</span>", unsafe_allow_html=True)
+                st.markdown(f"<p class='analysis-text'>📊 <b>Risk/Ödül Oranı (R/R):</b> {data['rr_ratio']:.2f} (1 birim risk için potansiyel kazanç)</p>", unsafe_allow_html=True)
                 for reason in data['reasons']:
                     st.markdown(f"<p class='analysis-text'>{reason}</p>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
