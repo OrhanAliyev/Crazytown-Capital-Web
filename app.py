@@ -7,7 +7,7 @@ import time
 import random
 
 # ==========================================
-# 1. AYARLAR VE CSS (V1100 GOLD)
+# 1. AYARLAR VE CSS (V1101 FIX)
 # ==========================================
 st.set_page_config(
     page_title="Crazytown Capital | Pro Terminal",
@@ -324,35 +324,32 @@ def show_dashboard():
                 card_border = "#00ff00" if data['score'] >= 60 else "#ff4b4b" if data['score'] <= 40 else "#ffd700"
                 trend_col = "status-bullish" if "BOĞA" in data['trend'] else "status-bearish" if "AYI" in data['trend'] else "status-neutral"
                 
-                # ANA KART
+                # HTML Fix: Girintileri kaldırdık
                 st.markdown(f"""
-                <div class="tool-card" style="border-left-color: {card_border}; border-width: 0 0 0 6px;">
-                    <div class="tool-title">
-                        <span>{data['name']} ({data['symbol']})</span>
-                        <span style="font-size:1.5rem;">${data['price']:,.6f}</span>
-                    </div>
-                    <span style="color:{'#00ff00' if data['change_24h']>0 else '#ff4b4b'}; font-size:0.9rem;">24s Değişim: %{data['change_24h']:.2f}</span>
-                    <hr style="border-color:rgba(255,255,255,0.1);">
-                    
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <div><p style="color:#ccc; margin:0; font-size:0.9rem;">Genel Trend</p><span class="{trend_col}">{data['trend']}</span></div>
-                        <div><p style="color:#ccc; margin:0; font-size:0.9rem;">RSI Göstergesi</p><b style="color:#fff;">{data['rsi']:.2f}</b></div>
-                        <div><p style="color:#ccc; margin:0; font-size:0.9rem;">Destek (Tahmini)</p><b style="color:#fff;">${data['support']:,.6f}</b></div>
-                        <div><p style="color:#ccc; margin:0; font-size:0.9rem;">Direnç (Tahmini)</p><b style="color:#fff;">${data['resistance']:,.6f}</b></div>
-                    </div>
-                    <br>
-                    
-                    <p style="color:#ccc; margin:0; font-size:0.9rem;">Crazytown Güven Skoru:</p>
-                    <div style="background:#333; height:10px; width:100%; border-radius:5px; margin-bottom:10px;">
-                        <div style="background:linear-gradient(90deg, #ff4b4b, #ffd700, #00ff00); height:100%; width:{data['score']}%; border-radius:5px;"></div>
-                    </div>
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="color:#fff; font-weight:bold; font-size:1.4rem;">KARAR: <span style="color:{card_border}">{data['decision']}</span></span>
-                        <span style="color:#888;">{data['score']}/100</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+<div class="tool-card" style="border-left-color: {card_border}; border-width: 0 0 0 6px;">
+<div class="tool-title">
+<span>{data['name']} ({data['symbol']})</span>
+<span style="font-size:1.5rem;">${data['price']:,.6f}</span>
+</div>
+<span style="color:{'#00ff00' if data['change_24h']>0 else '#ff4b4b'}; font-size:0.9rem;">24s Değişim: %{data['change_24h']:.2f}</span>
+<hr style="border-color:rgba(255,255,255,0.1);">
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+<div><p style="color:#ccc; margin:0; font-size:0.9rem;">Genel Trend</p><span class="{trend_col}">{data['trend']}</span></div>
+<div><p style="color:#ccc; margin:0; font-size:0.9rem;">RSI Göstergesi</p><b style="color:#fff;">{data['rsi']:.2f}</b></div>
+<div><p style="color:#ccc; margin:0; font-size:0.9rem;">Destek (Tahmini)</p><b style="color:#fff;">${data['support']:,.6f}</b></div>
+<div><p style="color:#ccc; margin:0; font-size:0.9rem;">Direnç (Tahmini)</p><b style="color:#fff;">${data['resistance']:,.6f}</b></div>
+</div>
+<br>
+<p style="color:#ccc; margin:0; font-size:0.9rem;">Crazytown Güven Skoru:</p>
+<div style="background:#333; height:10px; width:100%; border-radius:5px; margin-bottom:10px;">
+<div style="background:linear-gradient(90deg, #ff4b4b, #ffd700, #00ff00); height:100%; width:{data['score']}%; border-radius:5px;"></div>
+</div>
+<div style="display:flex; justify-content:space-between; align-items:center;">
+<span style="color:#fff; font-weight:bold; font-size:1.4rem;">KARAR: <span style="color:{card_border}">{data['decision']}</span></span>
+<span style="color:#888;">{data['score']}/100</span>
+</div>
+</div>
+""", unsafe_allow_html=True)
                 
                 # DETAYLI ANALİZ RAPORU
                 st.write("")
