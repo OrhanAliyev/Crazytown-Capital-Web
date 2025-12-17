@@ -7,7 +7,7 @@ import time
 import random
 
 # ==========================================
-# 1. AYARLAR VE CSS (V1102 STABLE)
+# 1. AYARLAR VE CSS (V1103 STABLE)
 # ==========================================
 st.set_page_config(
     page_title="Crazytown Capital | Pro Terminal",
@@ -31,7 +31,7 @@ st.markdown("""
         .ticker-item { display: inline-block; padding: 0 2rem; color: #66fcf1; font-size: 0.8rem; font-weight: bold; }
         @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        /* ANIMASYON */
+        /* ARKA PLAN */
         .area { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
         .circles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
         .circles li { position: absolute; display: block; list-style: none; width: 20px; height: 20px; background: rgba(102, 252, 241, 0.05); animation: animate 25s linear infinite; bottom: -150px; border: 1px solid rgba(102, 252, 241, 0.1); transform: rotate(45deg); }
@@ -69,22 +69,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Ticker
-st.markdown("""<div class="ticker-wrap"><div class="ticker"><span class="ticker-item">BTC: $98,450 (+2.4%)</span><span class="ticker-item">ETH: $3,200 (+1.1%)</span><span class="ticker-item">SOL: $145 (-0.5%)</span><span class="ticker-item">CRAZYTOWN CAPITAL SİSTEM AKTİF</span></div></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="ticker-wrap"><div class="ticker"><span class="ticker-item">BTC: $98,450 (+2.4%)</span><span class="ticker-item">ETH: $3,200 (+1.1%)</span><span class="ticker-item">SOL: $145 (-0.5%)</span><span class="ticker-item">FED FAİZ KARARI BEKLENİYOR...</span><span class="ticker-item">BLACKROCK YENİ ETF BAŞVURUSU YAPTI</span><span class="ticker-item">CRAZYTOWN CAPITAL V11.0 SİSTEM AKTİF</span></div></div>""", unsafe_allow_html=True)
 st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 2. HİBRİT VERİ MOTORU (BINANCE + COINGECKO)
+# 2. SAĞLAMLAŞTIRILMIŞ VERİ MOTORU (CRASH PROOF)
 # ==========================================
 
-# Hızlı Erişim Sözlüğü (API Beklemeden Çalışır)
 POPULAR_COINS = {
-    'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana', 'XRP': 'ripple', 
-    'DOGE': 'dogecoin', 'ADA': 'cardano', 'AVAX': 'avalanche-2', 'DOT': 'polkadot',
-    'MATIC': 'matic-network', 'TRX': 'tron', 'SHIB': 'shiba-inu', 'LTC': 'litecoin',
-    'LINK': 'chainlink', 'XLM': 'stellar', 'ATOM': 'cosmos', 'UNI': 'uniswap',
-    'PEPE': 'pepe', 'BONK': 'bonk', 'FET': 'fetch-ai', 'RNDR': 'render-token',
-    'ARB': 'arbitrum', 'OP': 'optimism', 'SUI': 'sui', 'APT': 'aptos',
-    'KAS': 'kaspa', 'INJ': 'injective-protocol', 'TIA': 'celestia', 'RESOLV': 'resolv'
+    'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana', 'XRP': 'ripple', 'DOGE': 'dogecoin', 
+    'ADA': 'cardano', 'AVAX': 'avalanche-2', 'SHIB': 'shiba-inu', 'PEPE': 'pepe', 'BONK': 'bonk'
 }
 
 @st.cache_data(ttl=60)
@@ -92,14 +86,12 @@ def get_all_coins_list():
     try:
         url = "https://api.coingecko.com/api/v3/coins/list"
         resp = requests.get(url, timeout=3)
-        if resp.status_code == 200:
-            return resp.json()
-    except: return []
+        if resp.status_code == 200: return resp.json()
+    except: pass
     return []
 
 @st.cache_data(ttl=15)
 def get_binance_data(symbol):
-    # Binance'den veri çek (Yedek Plan)
     try:
         url = f"https://api.binance.com/api/v3/klines?symbol={symbol}USDT&interval=1h&limit=50"
         resp = requests.get(url, timeout=3)
@@ -107,119 +99,110 @@ def get_binance_data(symbol):
             data = resp.json()
             df = pd.DataFrame(data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'q_vol', 'num_trades', 'tb_base_vol', 'tb_quote_vol', 'ignore'])
             return df['close'].astype(float).tolist()
-    except: return []
+    except: pass
     return []
 
 @st.cache_data(ttl=30)
 def get_coingecko_data(coin_id):
     try:
         url = f"https://api.coingecko.com/api/v3/coins/{coin_id}?tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=true"
-        resp = requests.get(url, timeout=5)
-        if resp.status_code == 200:
-            return resp.json()
-    except: return None
+        resp = requests.get(url, timeout=3)
+        if resp.status_code == 200: return resp.json()
+    except: pass
     return None
 
 def calculate_technical_analysis(prices):
-    if not prices or len(prices) < 25: return 50, 0, 0
-    s = pd.Series(prices)
-    delta = s.diff()
-    gain = (delta.where(delta > 0, 0)).rolling(14).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
-    rs = gain / loss
-    rsi = 100 - (100 / (1 + rs))
-    current_rsi = rsi.iloc[-1] if not pd.isna(rsi.iloc[-1]) else 50
-    sma_short = s.rolling(7).mean().iloc[-1]
-    sma_long = s.rolling(25).mean().iloc[-1]
-    return current_rsi, sma_short, sma_long
+    if not prices or len(prices) < 20: return 50, 0, 0
+    try:
+        s = pd.Series(prices)
+        delta = s.diff()
+        gain = (delta.where(delta > 0, 0)).rolling(14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
+        rs = gain / loss
+        rsi = 100 - (100 / (1 + rs))
+        current_rsi = rsi.iloc[-1] if not pd.isna(rsi.iloc[-1]) else 50
+        sma_short = s.rolling(7).mean().iloc[-1]
+        sma_long = s.rolling(25).mean().iloc[-1]
+        return current_rsi, sma_short, sma_long
+    except: return 50, 0, 0
 
 def analyze_any_coin(search_term):
     search_term = search_term.upper().strip()
     coin_id = None
+    symbol = search_term
     
-    # 1. HIZLI ARAMA (POPÜLER LİSTE)
+    # 1. Popüler Listeden Bul
     if search_term in POPULAR_COINS:
         coin_id = POPULAR_COINS[search_term]
     
-    # 2. GENİŞ ARAMA (Eğer hızlı listede yoksa)
+    # 2. Bulamazsa Taramaya Geç
     if not coin_id:
         all_coins = get_all_coins_list()
         for c in all_coins:
             if c['symbol'].upper() == search_term:
-                coin_id = c['id']; break
+                coin_id = c['id']; symbol = c['symbol'].upper(); break
         if not coin_id:
             for c in all_coins:
                 if c['name'].lower() == search_term.lower():
-                    coin_id = c['id']; break
+                    coin_id = c['id']; symbol = c['symbol'].upper(); break
     
-    # VERİ TOPLAMA VE ANALİZ
+    # Fallback (BTC/ETH her zaman çalışsın)
+    if search_term == 'BTC': coin_id = 'bitcoin'
+    if search_term == 'ETH': coin_id = 'ethereum'
+    
     price_data = []
     current_price = 0
     change_24h = 0
-    name = search_term
-    
-    # A. CoinGecko Dene
+    name = symbol
+
+    # A. Veri Çekme (CoinGecko)
     if coin_id:
         cg_data = get_coingecko_data(coin_id)
         if cg_data:
-            market_data = cg_data.get('market_data', {})
-            current_price = market_data.get('current_price', {}).get('usd', 0)
-            change_24h = market_data.get('price_change_percentage_24h', 0)
-            price_data = market_data.get('sparkline_7d', {}).get('price', [])
-            name = cg_data.get('name')
+            try:
+                md = cg_data.get('market_data', {})
+                current_price = md.get('current_price', {}).get('usd', 0)
+                change_24h = md.get('price_change_percentage_24h', 0)
+                price_data = md.get('sparkline_7d', {}).get('price', [])
+                name = cg_data.get('name')
+            except: pass
 
-    # B. Binance Yedekleme (Eğer CoinGecko başarısızsa veya coin_id bulunamazsa)
+    # B. Veri Çekme (Binance Yedek)
     if not price_data:
-        binance_prices = get_binance_data(search_term)
-        if binance_prices:
-            price_data = binance_prices
+        b_data = get_binance_data(symbol)
+        if b_data:
+            price_data = b_data
             current_price = price_data[-1]
-            change_24h = ((current_price - price_data[0]) / price_data[0]) * 100 # Tahmini
-            name = search_term # İsim yoksa sembol kullan
+            try: change_24h = ((current_price - price_data[0])/price_data[0])*100
+            except: change_24h = 0
+            name = symbol
 
-    if not price_data: return None # İki kaynaktan da veri yoksa
+    if not price_data: return None
 
-    # TEKNİK ANALİZ
+    # Analiz
     rsi, sma_s, sma_l = calculate_technical_analysis(price_data)
-    
     reasons = []
-    score = 50 
+    score = 50
     
-    # Trend
+    # Trend Logic
     if sma_s > sma_l: 
         trend = "BOĞA (YÜKSELİŞ) 🟢"
-        reasons.append(f"✅ **Trend:** Fiyat (${current_price:,.4f}), 25 günlük ortalamanın üzerinde.")
+        reasons.append(f"✅ **Trend:** Fiyat (${current_price:,.4f}) ortalamaların üzerinde.")
         score += 20
     else: 
         trend = "AYI (DÜŞÜŞ) 🔴"
-        reasons.append(f"🔻 **Trend:** Fiyat (${current_price:,.4f}), 25 günlük ortalamanın altında.")
+        reasons.append(f"🔻 **Trend:** Fiyat (${current_price:,.4f}) baskı altında.")
         score -= 20
 
-    # RSI
-    if rsi < 30: 
-        reasons.append(f"🔥 **RSI ({rsi:.1f}):** Aşırı SATIM (<30). Güçlü Dip Sinyali.")
+    # RSI Logic
+    if rsi < 30:
+        reasons.append(f"🔥 **RSI ({rsi:.1f}):** Aşırı SATIM bölgesinde. Dip sinyali.")
         score += 30
-    elif rsi > 70: 
-        reasons.append(f"⚠️ **RSI ({rsi:.1f}):** Aşırı ALIM (>70). Düzeltme ihtimali.")
+    elif rsi > 70:
+        reasons.append(f"⚠️ **RSI ({rsi:.1f}):** Aşırı ALIM bölgesinde. Dikkat.")
         score -= 30
-    elif 45 <= rsi <= 55:
-        reasons.append(f"😴 **RSI ({rsi:.1f}):** Tam nötr bölge.")
     else:
-        reasons.append(f"ℹ️ **RSI ({rsi:.1f}):** Normal bölgede.")
-        if rsi > 50: score += 5
-        else: score -= 5
-
-    # Momentum
-    if change_24h > 5:
-        reasons.append(f"🚀 **Momentum:** 24s Değişim %{change_24h:.1f}. Talep güçlü.")
-        score += 15
-    elif change_24h < -5:
-        if rsi < 35:
-            reasons.append(f"🩸 **Fırsat:** Sert düşüş var ama RSI dipte.")
-            score += 5
-        else:
-            reasons.append(f"🔻 **Baskı:** 24s Değişim %{change_24h:.1f}.")
-            score -= 15
+        reasons.append(f"ℹ️ **RSI ({rsi:.1f}):** Nötr bölgede.")
 
     score = max(0, min(100, score))
     
@@ -231,10 +214,12 @@ def analyze_any_coin(search_term):
 
     support = current_price * 0.90
     resistance = current_price * 1.10
-    rr_ratio = (resistance - current_price) / (current_price - support) if (current_price - support) > 0 else 0
+    
+    try: rr_ratio = (resistance - current_price) / (current_price - support)
+    except: rr_ratio = 0
 
     return {
-        "name": name, "symbol": search_term, "price": current_price, "change_24h": change_24h,
+        "name": name, "symbol": symbol, "price": current_price, "change_24h": change_24h,
         "rsi": rsi, "trend": trend, "score": score, "decision": decision,
         "reasons": reasons, "support": support, "resistance": resistance, "rr_ratio": rr_ratio
     }
@@ -261,7 +246,6 @@ def show_home():
     c1, c2 = st.columns(2)
     with c1: st.markdown("""<div class="glass-box"><h3>⚡ Market Waves Pro</h3><p>Tüm Coinler İçin Yapay Zeka Analizi</p></div>""", unsafe_allow_html=True)
     with c2: st.markdown("""<div class="glass-box"><h3>🐋 Detaylı Raporlama</h3><p>Destek, Direnç ve Neden-Sonuç Analizi</p></div>""", unsafe_allow_html=True)
-    
     st.markdown("<br><h3 style='text-align:center; color:#fff;'>ÜYELİK PAKETLERİ</h3>", unsafe_allow_html=True)
     pc1, pc2, pc3 = st.columns(3)
     with pc1: st.markdown("""<div class="pricing-card"><h3>BAŞLANGIÇ</h3><div style="font-size:2rem;color:#fff;">$30</div><p>/ay</p></div>""", unsafe_allow_html=True)
@@ -315,14 +299,14 @@ def show_dashboard():
         search_query = st.text_input("COIN ARA (İsim veya Sembol)", placeholder="Örn: Resolv, BTC, DOGE...").strip()
         
         if search_query:
-            with st.spinner(f"'{search_query}' için küresel veriler toplanıyor..."):
+            with st.spinner(f"'{search_query}' taranıyor..."):
                 data = analyze_any_coin(search_query)
                 
             if data:
                 card_border = "#00ff00" if data['score'] >= 60 else "#ff4b4b" if data['score'] <= 40 else "#ffd700"
                 trend_col = "status-bullish" if "BOĞA" in data['trend'] else "status-bearish" if "AYI" in data['trend'] else "status-neutral"
                 
-                # HTML Düzeltildi (Girintisiz)
+                # HTML Fix: Girintiler tamamen sola yaslı
                 st.markdown(f"""
 <div class="tool-card" style="border-left-color: {card_border}; border-width: 0 0 0 6px;">
 <div class="tool-title">
@@ -361,7 +345,7 @@ def show_dashboard():
                 components.html(f"""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>{{"width": "100%", "height": "500", "symbol": "BINANCE:{data['symbol']}USDT", "interval": "60", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "tr", "enable_publishing": false, "hide_side_toolbar": false, "allow_symbol_change": true, "studies": ["STD;MACD", "STD;RSI"], "support_host": "https://www.tradingview.com"}}</script></div>""", height=500)
 
             else:
-                st.warning(f"'{search_query}' bulunamadı. Lütfen ismini doğru yazdığınızdan emin olun.")
+                st.error(f"'{search_query}' için veri alınamadı. İnternet bağlantınızı kontrol edin veya farklı bir sembol deneyin.")
 
     with tab2:
         st.subheader("🚀 PİYASA HAREKETLİLİĞİ")
