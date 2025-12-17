@@ -67,7 +67,6 @@ st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li>
 
 @st.cache_data(ttl=60)
 def get_all_coins_list():
-    # Coingecko'dan tüm coin listesini çek (Resolv vb. bulmak için)
     try:
         url = "https://api.coingecko.com/api/v3/coins/list"
         resp = requests.get(url, timeout=5)
@@ -78,7 +77,6 @@ def get_all_coins_list():
 
 @st.cache_data(ttl=30)
 def get_coingecko_data(coin_id):
-    # Coingecko'dan detaylı veri çek
     try:
         url = f"https://api.coingecko.com/api/v3/coins/{coin_id}?tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=true"
         resp = requests.get(url, timeout=5)
@@ -88,13 +86,11 @@ def get_coingecko_data(coin_id):
     return None
 
 def calculate_technical_analysis(price_data):
-    # Basit RSI ve SMA simülasyonu (Gerçek geçmiş veri varsa hesaplanır, yoksa anlık veriden türetilir)
     if not price_data: return 50, 0, 0, 0
     
     prices = price_data # Liste: [fiyat1, fiyat2...]
     if len(prices) < 14: return 50, 0, 0, 0
     
-    # Pandas serisine çevir
     s = pd.Series(prices)
     
     # RSI
@@ -109,10 +105,7 @@ def calculate_technical_analysis(price_data):
     sma_short = s.rolling(7).mean().iloc[-1]
     sma_long = s.rolling(25).mean().iloc[-1]
     
-    # Trend Gücü (Volatilite bazlı)
-    volatility = s.std()
-    
-    return current_rsi, sma_short, sma_long, volatility
+    return current_rsi, sma_short, sma_long
 
 def analyze_any_coin(search_term):
     search_term = search_term.lower().strip()
@@ -122,26 +115,19 @@ def analyze_any_coin(search_term):
     coin_id = None
     symbol = search_term.upper()
     
-    # Tam eşleşme ara (Önce sembol, sonra isim)
     for c in all_coins:
         if c['symbol'].lower() == search_term:
-            coin_id = c['id']
-            symbol = c['symbol'].upper()
-            break
+            coin_id = c['id']; symbol = c['symbol'].upper(); break
     
     if not coin_id:
         for c in all_coins:
             if c['name'].lower() == search_term:
-                coin_id = c['id']
-                symbol = c['symbol'].upper()
-                break
+                coin_id = c['id']; symbol = c['symbol'].upper(); break
     
-    # Binance gibi popülerler için ID zorla (Hız için)
     if search_term == 'btc': coin_id = 'bitcoin'
     if search_term == 'eth': coin_id = 'ethereum'
-    if search_term == 'resolv': coin_id = 'resolv' # Örnek
     
-    if not coin_id: return None # Bulunamadı
+    if not coin_id: return None
 
     # 2. Verileri Çek
     data = get_coingecko_data(coin_id)
@@ -153,56 +139,65 @@ def analyze_any_coin(search_term):
     sparkline = market_data.get('sparkline_7d', {}).get('price', [])
     
     # 3. Teknik Analiz
-    rsi, sma_s, sma_l, vol = calculate_technical_analysis(sparkline)
+    rsi, sma_s, sma_l = calculate_technical_analysis(sparkline)
     
-    # 4. Karar Mekanizması & Açıklamalar
+    # 4. YENİ GELİŞMİŞ ALGORİTMA (SMART LOGIC V1001)
     reasons = []
+    score = 50 # Nötr başlangıç
     
-    # Trend Analizi
+    # A. TREND ANALİZİ
     if sma_s > sma_l: 
         trend = "BOĞA (YÜKSELİŞ) 🟢"
-        reasons.append(f"✅ **Trend:** Fiyat kısa vadeli ortalamaların üzerinde, momentum pozitif.")
-        score_trend = 30
+        reasons.append(f"✅ **Trend:** Fiyat kısa vadeli ortalamaların üzerinde (SMA7 > SMA25).")
+        score += 20
     else: 
         trend = "AYI (DÜŞÜŞ) 🔴"
-        reasons.append(f"🔻 **Trend:** Fiyat baskı altında, hareketli ortalamaların altında seyrediyor.")
-        score_trend = -20
+        reasons.append(f"🔻 **Trend:** Fiyat baskı altında, ortalamaların altında seyrediyor.")
+        score -= 20
 
-    # RSI Analizi
+    # B. RSI ANALİZİ (DAHA SEÇİCİ)
     if rsi < 30: 
-        reasons.append(f"✅ **RSI ({rsi:.1f}):** Aşırı satım bölgesinde. Bu genellikle bir 'dip' sinyali olabilir.")
-        score_rsi = 30
+        reasons.append(f"🔥 **RSI ({rsi:.1f}):** Aşırı SATIM bölgesinde! (Güçlü Dip Sinyali).")
+        score += 30
     elif rsi > 70: 
-        reasons.append(f"⚠️ **RSI ({rsi:.1f}):** Aşırı alım bölgesinde. Düzeltme gelebilir, dikkatli olun.")
-        score_rsi = -20
+        reasons.append(f"⚠️ **RSI ({rsi:.1f}):** Aşırı ALIM bölgesinde! (Düzeltme Gelebilir).")
+        score -= 30
+    elif 45 <= rsi <= 55:
+        reasons.append(f"😴 **RSI ({rsi:.1f}):** Tamamen nötr. Kararsız piyasa.")
+        # Puan değiştirme, bekle
     else:
-        reasons.append(f"ℹ️ **RSI ({rsi:.1f}):** Nötr bölgede. Yön arayışı sürüyor.")
-        score_rsi = 10
+        reasons.append(f"ℹ️ **RSI ({rsi:.1f}):** Normal bölgede.")
+        # Hafif puan değişimi
+        if rsi > 50: score += 5
+        else: score -= 5
 
-    # 24s Değişim Analizi
+    # C. HACİM/DEĞİŞİM ANALİZİ
     if price_change_24h > 5:
-        reasons.append(f"🔥 **Hacim:** Son 24 saatte %{price_change_24h:.1f} yükseliş var, talep güçlü.")
-        score_vol = 20
+        reasons.append(f"🚀 **Momentum:** 24 saatte %{price_change_24h:.1f} artış! Talep güçlü.")
+        score += 15
     elif price_change_24h < -5:
-        reasons.append(f"❄️ **Hacim:** Son 24 saatte %{abs(price_change_24h):.1f} değer kaybı, panik satışı olabilir.")
-        score_vol = -10
+        # Eğer RSI düşükse (Dip) ve düşüş sertse -> Puanı çok kırma (Fırsat olabilir)
+        if rsi < 35:
+            reasons.append(f"🩸 **Fırsat:** Sert düşüş (%{price_change_24h:.1f}) ama RSI dipte.")
+            score += 5
+        else:
+            reasons.append(f"🔻 **Baskı:** 24 saatte %{abs(price_change_24h):.1f} değer kaybı.")
+            score -= 15
     else:
-        score_vol = 5
+        score += 0 # Yatay
 
-    # Skor Hesaplama
-    final_score = 50 + score_trend + score_rsi + score_vol
-    final_score = max(0, min(100, final_score))
+    # Skor Sınırları
+    score = max(0, min(100, score))
     
     # Karar
-    if final_score >= 75: decision = "GÜÇLÜ AL 🚀"
-    elif final_score >= 60: decision = "ALIM FIRSATI ✅"
-    elif final_score <= 25: decision = "GÜÇLÜ SAT 📉"
-    elif final_score <= 40: decision = "SATIŞ BASKISI 🔻"
+    if score >= 80: decision = "GÜÇLÜ AL 🚀"
+    elif score >= 60: decision = "ALIM FIRSATI ✅"
+    elif score <= 20: decision = "GÜÇLÜ SAT 📉"
+    elif score <= 40: decision = "SATIŞ BASKISI 🔻"
     else: decision = "BEKLE / İZLE ✋"
 
-    # Destek & Direnç (Basit Hesap)
-    support = current_price * 0.95
-    resistance = current_price * 1.05
+    support = current_price * 0.90
+    resistance = current_price * 1.10
 
     return {
         "name": data.get('name'),
@@ -211,7 +206,7 @@ def analyze_any_coin(search_term):
         "change_24h": price_change_24h,
         "rsi": rsi,
         "trend": trend,
-        "score": final_score,
+        "score": score,
         "decision": decision,
         "reasons": reasons,
         "support": support,
@@ -340,7 +335,7 @@ def show_dashboard():
                     st.markdown(f"<p class='analysis-text'>{reason}</p>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
                 
-                # TradingView (Varsa)
+                # TradingView
                 st.write("")
                 components.html(f"""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>{{"width": "100%", "height": "500", "symbol": "BINANCE:{data['symbol']}USDT", "interval": "60", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "tr", "enable_publishing": false, "hide_side_toolbar": false, "allow_symbol_change": true, "studies": ["STD;MACD", "STD;RSI"], "support_host": "https://www.tradingview.com"}}</script></div>""", height=500)
 
