@@ -7,7 +7,7 @@ import time
 import random
 
 # ==========================================
-# 1. AYARLAR VE CSS (V1300 STRATEGY MASTER)
+# 1. AYARLAR VE CSS (V1301 STABLE)
 # ==========================================
 st.set_page_config(
     page_title="Crazytown Capital | Pro Terminal",
@@ -49,7 +49,7 @@ st.markdown("""
         .tool-card:hover { transform: translateX(5px); border-color: #ffd700; }
         .tool-title { font-weight: bold; color: #fff; font-size: 1.2rem; display: flex; justify-content: space-between; align-items:center; }
         
-        /* DETAYLI ANALİZ KUTUSU (PROFESYONEL) */
+        /* DETAYLI ANALİZ KUTUSU */
         .analysis-box { text-align: left; background: rgba(255,255,255,0.03) !important; border-left: 4px solid #ffd700; margin-top: 15px; padding: 25px; }
         .analysis-header { color: #ffd700; font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px; display:block;}
         .analysis-section { margin-bottom: 15px; }
@@ -145,19 +145,19 @@ def generate_timeframe_advice(rsi, trend_bullish, score):
     swing = "NÖTR"
     hold = "NÖTR"
     
-    # 1. SCALP (Kısa Vade - 15dk/1s)
+    # 1. SCALP (Kısa Vade)
     if rsi < 30: scalp = "AL (Tepki) ✅"
     elif rsi > 70: scalp = "SAT (Düzeltme) 🔻"
     else: scalp = "BEKLE ✋"
     
-    # 2. SWING (Orta Vade - 4s/Günlük)
+    # 2. SWING (Orta Vade)
     if trend_bullish and rsi > 40 and rsi < 70: swing = "TUT/EKLE 🟢"
     elif not trend_bullish and rsi < 60: swing = "SAT/NAKİTTE KAL 🔴"
     else: swing = "İZLE 👀"
     
     # 3. HOLD (Uzun Vade)
     if score > 70: hold = "GÜÇLÜ AL 🚀"
-    elif score < 30: hold = "KADEMELİ TOPLA 🧺" # Düşük skor ama uzun vade için fırsat olabilir
+    elif score < 30: hold = "KADEMELİ TOPLA 🧺"
     else: hold = "MEVCUDU KORU 🛡️"
     
     return scalp, swing, hold
@@ -234,7 +234,8 @@ def analyze_any_coin(search_term):
         score -= 30
     else:
         rsi_desc = f"RSI ({rsi:.1f}) nötr bölgede. Piyasa yön arayışına devam ediyor."
-        if rsi > 50: score += 5; else: score -= 5
+        if rsi > 50: score += 5
+        else: score -= 5
 
     # Momentum
     if change_24h > 5:
@@ -381,7 +382,6 @@ def show_dashboard():
                 st.markdown("<div class='analysis-box'>", unsafe_allow_html=True)
                 st.markdown("<span class='analysis-header'>📋 CRAZYTOWN INSTITUTIONAL RAPORU</span>", unsafe_allow_html=True)
                 
-                # Zaman Dilimi Stratejisi
                 st.markdown(f"""
                 <div class="analysis-section">
                     <span class="analysis-label">⏱️ ZAMAN DİLİMİ STRATEJİSİ:</span>
@@ -393,7 +393,6 @@ def show_dashboard():
                 </div>
                 """, unsafe_allow_html=True)
 
-                # Temel & Teknik Detaylar
                 st.markdown(f"""
                 <div class="analysis-section">
                     <span class="analysis-label">🔍 TEKNİK GÖRÜNÜM:</span>
