@@ -2,12 +2,10 @@ import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 import requests
-from datetime import datetime
 import time
-import random
 
 # ==========================================
-# 1. AYARLAR VE CSS (V1301 STABLE)
+# 1. AYARLAR & CSS
 # ==========================================
 st.set_page_config(
     page_title="Crazytown Capital | Pro Terminal",
@@ -50,19 +48,15 @@ st.markdown("""
         .tool-title { font-weight: bold; color: #fff; font-size: 1.2rem; display: flex; justify-content: space-between; align-items:center; }
         
         /* DETAYLI ANALİZ KUTUSU */
-        .analysis-box { text-align: left; background: rgba(255,255,255,0.03) !important; border-left: 4px solid #ffd700; margin-top: 15px; padding: 25px; }
-        .analysis-header { color: #ffd700; font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px; display:block;}
+        .analysis-box { text-align: left; background: rgba(255,255,255,0.02) !important; border-left: 4px solid #ffd700; margin-top: 15px; padding: 25px;}
         .analysis-section { margin-bottom: 15px; }
         .analysis-label { color: #66fcf1; font-weight: bold; font-size: 0.9rem; }
         .analysis-text { color: #ddd; font-size: 0.95rem; line-height: 1.6; margin-top: 5px; }
         
-        /* ZAMAN DİLİMİ TABLOSU */
+        /* TABLO */
         .strategy-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         .strategy-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); color: #ccc; font-size: 0.9rem; }
         .strategy-tag { padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
-        .tag-buy { background: rgba(0,255,0,0.2); color: #00ff00; }
-        .tag-sell { background: rgba(255,0,0,0.2); color: #ff4b4b; }
-        .tag-wait { background: rgba(255,255,255,0.1); color: #ccc; }
 
         /* RENKLER */
         .status-bullish { color: #00ff00; background: rgba(0,255,0,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight:bold;}
@@ -81,7 +75,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Ticker
-st.markdown("""<div class="ticker-wrap"><div class="ticker"><span class="ticker-item">BTC: $98,450 (+2.4%)</span><span class="ticker-item">ETH: $3,200 (+1.1%)</span><span class="ticker-item">SOL: $145 (-0.5%)</span><span class="ticker-item">FED FAİZ KARARI BEKLENİYOR...</span><span class="ticker-item">CRAZYTOWN CAPITAL V13.0 SİSTEM AKTİF</span></div></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="ticker-wrap"><div class="ticker"><span class="ticker-item">BTC: $98,450 (+2.4%)</span><span class="ticker-item">ETH: $3,200 (+1.1%)</span><span class="ticker-item">SOL: $145 (-0.5%)</span><span class="ticker-item">FED FAİZ KARARI BEKLENİYOR...</span><span class="ticker-item">BLACKROCK YENİ ETF BAŞVURUSU YAPTI</span><span class="ticker-item">CRAZYTOWN CAPITAL V13.1 SİSTEM AKTİF</span></div></div>""", unsafe_allow_html=True)
 st.markdown("""<div class="area"><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>""", unsafe_allow_html=True)
 
 # ==========================================
@@ -140,22 +134,19 @@ def calculate_technical_analysis(prices):
     except: return 50, 0, 0
 
 def generate_timeframe_advice(rsi, trend_bullish, score):
-    # Zaman Dilimi Stratejisi Oluşturucu
+    # Zaman Dilimi Stratejisi
     scalp = "NÖTR"
     swing = "NÖTR"
     hold = "NÖTR"
     
-    # 1. SCALP (Kısa Vade)
     if rsi < 30: scalp = "AL (Tepki) ✅"
     elif rsi > 70: scalp = "SAT (Düzeltme) 🔻"
     else: scalp = "BEKLE ✋"
     
-    # 2. SWING (Orta Vade)
     if trend_bullish and rsi > 40 and rsi < 70: swing = "TUT/EKLE 🟢"
     elif not trend_bullish and rsi < 60: swing = "SAT/NAKİTTE KAL 🔴"
     else: swing = "İZLE 👀"
     
-    # 3. HOLD (Uzun Vade)
     if score > 70: hold = "GÜÇLÜ AL 🚀"
     elif score < 30: hold = "KADEMELİ TOPLA 🧺"
     else: hold = "MEVCUDU KORU 🛡️"
@@ -186,6 +177,7 @@ def analyze_any_coin(search_term):
     name = symbol
     source = "Bilinmiyor"
 
+    # Coingecko Veri
     if coin_id:
         cg_data = get_coingecko_data(coin_id)
         if cg_data:
@@ -198,6 +190,7 @@ def analyze_any_coin(search_term):
                 source = "CoinGecko"
             except: pass
 
+    # Binance Veri (Yedek)
     if not price_data:
         bin_data = get_binance_data(symbol)
         if bin_data:
@@ -218,34 +211,34 @@ def analyze_any_coin(search_term):
     if sma_s > sma_l: 
         trend = "BOĞA (YÜKSELİŞ) 🟢"
         trend_bullish = True
-        trend_desc = f"Fiyat (${current_price:,.4f}), kısa vadeli ortalamaların üzerinde güçlü duruyor. Momentum alıcıların kontrolünde."
+        trend_desc = f"Fiyat (${current_price:,.4f}), kısa vadeli ortalamaların üzerinde. Momentum alıcıların kontrolünde."
         score += 20
     else: 
         trend = "AYI (DÜŞÜŞ) 🔴"
-        trend_desc = f"Fiyat (${current_price:,.4f}), satış baskısı altında. Ayılar piyasaya hakim görünüyor."
+        trend_desc = f"Fiyat (${current_price:,.4f}), satış baskısı altında. Ayılar piyasaya hakim."
         score -= 20
 
     # RSI
     if rsi < 30: 
-        rsi_desc = f"RSI ({rsi:.1f}) aşırı satım bölgesinde. İstatistiksel olarak bu bölgelerden 'tepki yükselişi' gelme ihtimali yüksektir."
+        rsi_desc = f"RSI ({rsi:.1f}) aşırı satım bölgesinde. 'Dip' sinyali."
         score += 30
     elif rsi > 70: 
-        rsi_desc = f"RSI ({rsi:.1f}) aşırı alım bölgesinde. Fiyat çok şişmiş olabilir, kar satışı (düzeltme) riski var."
+        rsi_desc = f"RSI ({rsi:.1f}) aşırı alım bölgesinde. Düzeltme riski."
         score -= 30
     else:
-        rsi_desc = f"RSI ({rsi:.1f}) nötr bölgede. Piyasa yön arayışına devam ediyor."
+        rsi_desc = f"RSI ({rsi:.1f}) nötr bölgede."
         if rsi > 50: score += 5
         else: score -= 5
 
     # Momentum
     if change_24h > 5:
-        vol_desc = f"Son 24 saatte %{change_24h:.2f} yükseliş var. Hacimli bir talep söz konusu."
+        vol_desc = f"Son 24 saatte %{change_24h:.2f} yükseliş var."
         score += 15
     elif change_24h < -5:
-        vol_desc = f"Son 24 saatte %{abs(change_24h):.2f} düşüş var. Panik satışları görülebilir."
+        vol_desc = f"Son 24 saatte %{abs(change_24h):.2f} düşüş var."
         score -= 15
     else:
-        vol_desc = "Fiyat yatay seyrediyor. Akümülasyon (toplama) evresinde olabilir."
+        vol_desc = "Fiyat yatay seyrediyor."
 
     score = max(0, min(100, score))
     
@@ -299,62 +292,43 @@ def show_home():
     with pc3: st.markdown("""<div class="pricing-card"><h3>ÖMÜR BOYU</h3><div style="font-size:2rem;color:#fff;">$250</div><p>tek sefer</p></div>""", unsafe_allow_html=True)
 
 def show_auth(mode):
-    title = "KAYIT OL" if mode == "Register" else "GİRİŞ YAP"
-    st.markdown(f'<div class="hero-title" style="font-size:2.5rem;">{title}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="hero-title" style="font-size:2.5rem;">{mode}</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     with st.form("auth"):
         u = st.text_input("Kullanıcı Adı")
         p = st.text_input("Şifre", type="password")
-        if mode == "Register": n = st.text_input("Ad Soyad")
         if st.form_submit_button("ONAYLA"):
-            if mode == "Register":
-                st.success("Hesap Oluşturuldu!"); time.sleep(1); go_to("Login")
+            if u == "admin" and p == "password123":
+                st.session_state.logged_in = True; st.session_state.user_info = {"Name": "Orhan Aliyev", "Plan": "ADMIN"}; st.rerun()
             else:
-                if u == "admin" and p == "password123":
-                    st.session_state.logged_in = True; st.session_state.user_info = {"Name": "Orhan Aliyev", "Plan": "ADMIN"}; st.rerun()
-                else:
-                    st.session_state.logged_in = True; st.session_state.user_info = {"Name": u, "Plan": "Free"}; st.success("Hoşgeldiniz"); time.sleep(1); st.rerun()
-    if st.button("Ana Sayfaya Dön"): go_to("Home")
+                st.session_state.logged_in = True; st.session_state.user_info = {"Name": u, "Plan": "Free"}; st.success("Hoşgeldiniz"); time.sleep(1); st.rerun()
+    if st.button("Ana Sayfa"): go_to("Home")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- DASHBOARD ---
 def show_dashboard():
     ui = st.session_state.user_info
-    
-    st.markdown(f"""
-    <div class="status-bar">
-        <span><span style="height:8px;width:8px;background:#00ff00;border-radius:50%;display:inline-block;"></span> <b>SİSTEM AKTİF</b></span>
-        <span>|</span>
-        <span>VERİ: <b>EVRENSEL (MULTI-SOURCE)</b></span>
-        <span>|</span>
-        <span>KULLANICI: <b>{ui.get('Name')}</b></span>
-    </div>
-    """, unsafe_allow_html=True)
-
+    st.markdown(f"""<div class="status-bar"><span><b>SİSTEM AKTİF</b></span> | <span>USER: <b>{ui.get('Name')}</b></span></div>""", unsafe_allow_html=True)
     components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}, {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"}, {"proName": "BINANCE:SOLUSDT", "title": "Solana"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "tr"}</script></div>""", height=50)
+    
+    if st.button("🔒 ÇIKIŞ"): st.session_state.logged_in = False; go_to("Home")
 
-    st.write("")
-    if st.button("🔒 ÇIKIŞ YAP"): st.session_state.logged_in = False; go_to("Home")
-
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["⚡ DETAYLI ANALİZ", "📊 PİYASA VERİLERİ", "🎓 AKADEMİ", "🧮 HESAP MAKİNESİ", "👑 VIP OFİS"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["⚡ ANALİZ", "📊 PİYASA", "🎓 AKADEMİ", "🧮 HESAPLAMA", "👑 VIP"])
     
     with tab1:
-        st.markdown(f"""<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><h3 style="margin:0;">⚡ EVRENSEL COIN TARAYICISI</h3><span style="color:#888;">AI Engine V13.0</span></div>""", unsafe_allow_html=True)
-        
-        st.info("💡 İPUCU: Dünyadaki herhangi bir coini (Resolv, Bonk, BTC) aratabilirsiniz.")
-        search_query = st.text_input("COIN ARA (İsim veya Sembol)", placeholder="Örn: Resolv, BTC, DOGE...").strip()
+        st.markdown(f"""<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><h3 style="margin:0;">⚡ EVRENSEL COIN TARAYICISI</h3></div>""", unsafe_allow_html=True)
+        search_query = st.text_input("COIN ARA", placeholder="Örn: Resolv, BTC...").strip()
         
         if search_query:
-            with st.spinner(f"'{search_query}' verileri çekiliyor ve analiz ediliyor..."):
+            with st.spinner("Analiz ediliyor..."):
                 data = analyze_any_coin(search_query)
-                
+            
             if data:
-                card_border = "#00ff00" if data['score'] >= 60 else "#ff4b4b" if data['score'] <= 40 else "#ffd700"
-                trend_col = "status-bullish" if "BOĞA" in data['trend'] else "status-bearish" if "AYI" in data['trend'] else "status-neutral"
+                border = "#00ff00" if data['score']>=60 else "#ff4b4b" if data['score']<=40 else "#ffd700"
+                trend_col = "status-bullish" if "BOĞA" in data['trend'] else "status-bearish"
                 
                 # ANA KART
                 st.markdown(f"""
-<div class="tool-card" style="border-left-color: {card_border}; border-width: 0 0 0 6px;">
+<div class="tool-card" style="border-left-color: {border}; border-width: 0 0 0 6px;">
 <div class="tool-title">
 <span>{data['name']} ({data['symbol']})</span>
 <span style="font-size:1.5rem;">${data['price']:,.4f}</span>
@@ -362,110 +336,69 @@ def show_dashboard():
 <span style="color:{'#00ff00' if data['change_24h']>0 else '#ff4b4b'}; font-size:0.9rem;">24s Değişim: %{data['change_24h']:.2f}</span>
 <hr style="border-color:rgba(255,255,255,0.1);">
 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-<div><p style="color:#ccc; margin:0; font-size:0.9rem;">Genel Trend</p><span class="{trend_col}">{data['trend']}</span></div>
-<div><p style="color:#ccc; margin:0; font-size:0.9rem;">RSI Göstergesi</p><b style="color:#fff;">{data['rsi']:.2f}</b></div>
+<div><p style="color:#ccc; margin:0; font-size:0.8rem;">Genel Trend</p><span class="{trend_col}">{data['trend']}</span></div>
+<div><p style="color:#ccc; margin:0; font-size:0.8rem;">RSI Göstergesi</p><b style="color:#fff;">{data['rsi']:.2f}</b></div>
+<div><p style="color:#ccc; margin:0; font-size:0.8rem;">Destek (Giriş)</p><b style="color:#fff;">${data['support']:,.4f}</b></div>
+<div><p style="color:#ccc; margin:0; font-size:0.8rem;">Direnç (Kar)</p><b style="color:#fff;">${data['resistance']:,.4f}</b></div>
 </div>
 <br>
-<p style="color:#ccc; margin:0; font-size:0.9rem;">Crazytown Güven Skoru:</p>
-<div style="background:#333; height:10px; width:100%; border-radius:5px; margin-bottom:10px;">
+<p style="color:#ccc; margin:0; font-size:0.8rem;">Güven Skoru: {data['score']}/100</p>
+<div style="background:#333; height:8px; width:100%; border-radius:5px; margin-bottom:10px;">
 <div style="background:linear-gradient(90deg, #ff4b4b, #ffd700, #00ff00); height:100%; width:{data['score']}%; border-radius:5px;"></div>
 </div>
-<div style="display:flex; justify-content:space-between; align-items:center;">
-<span style="color:#fff; font-weight:bold; font-size:1.4rem;">KARAR: <span style="color:{card_border}">{data['decision']}</span></span>
-<span style="color:#888;">{data['score']}/100</span>
-</div>
+<div style="text-align:center; margin-top:10px;"><span style="color:#fff; font-weight:bold; font-size:1.3rem;">KARAR: <span style="color:{border}">{data['decision']}</span></span></div>
 </div>
 """, unsafe_allow_html=True)
-                
-                # DETAYLI RAPOR (V1300 YENİLİĞİ)
+
+                # DETAYLI RAPOR
                 st.write("")
                 st.markdown("<div class='analysis-box'>", unsafe_allow_html=True)
-                st.markdown("<span class='analysis-header'>📋 CRAZYTOWN INSTITUTIONAL RAPORU</span>", unsafe_allow_html=True)
+                st.markdown("<span class='analysis-label' style='font-size:1.1rem; color:#ffd700;'>📋 CRAZYTOWN STRATEJİ RAPORU</span><br><br>", unsafe_allow_html=True)
                 
                 st.markdown(f"""
                 <div class="analysis-section">
-                    <span class="analysis-label">⏱️ ZAMAN DİLİMİ STRATEJİSİ:</span>
+                    <span class="analysis-label">⏱️ ZAMAN DİLİMİ:</span>
                     <table class="strategy-table">
-                        <tr><td>⚡ KISA VADE (SCALP)</td><td><span class="strategy-tag">{data['scalp']}</span></td></tr>
-                        <tr><td>🌊 ORTA VADE (SWING)</td><td><span class="strategy-tag">{data['swing']}</span></td></tr>
-                        <tr><td>🏰 UZUN VADE (HODL)</td><td><span class="strategy-tag">{data['hold']}</span></td></tr>
+                        <tr><td>⚡ SCALP (15dk)</td><td><span class="strategy-tag">{data['scalp']}</span></td></tr>
+                        <tr><td>🌊 SWING (Günlük)</td><td><span class="strategy-tag">{data['swing']}</span></td></tr>
+                        <tr><td>🏰 HOLD (Uzun)</td><td><span class="strategy-tag">{data['hold']}</span></td></tr>
                     </table>
                 </div>
-                """, unsafe_allow_html=True)
-
-                st.markdown(f"""
                 <div class="analysis-section">
-                    <span class="analysis-label">🔍 TEKNİK GÖRÜNÜM:</span>
-                    <p class="analysis-text">✅ <b>Trend Analizi:</b> {data['trend_desc']}</p>
-                    <p class="analysis-text">ℹ️ <b>RSI Durumu:</b> {data['rsi_desc']}</p>
-                    <p class="analysis-text">📊 <b>Hacim & Momentum:</b> {data['vol_desc']}</p>
+                    <span class="analysis-label">🔍 NEDENLER:</span>
+                    <p class="analysis-text">• {data['trend_desc']}</p>
+                    <p class="analysis-text">• {data['rsi_desc']}</p>
+                    <p class="analysis-text">• {data['vol_desc']}</p>
                 </div>
-                
-                <div class="analysis-section">
-                    <span class="analysis-label">🎯 İŞLEM KURULUMU (SETUP):</span>
-                    <p class="analysis-text">🛡️ <b>Destek (Giriş Bölgesi):</b> ${data['support']:,.4f}</p>
-                    <p class="analysis-text">🚫 <b>Direnç (Kar Al Bölgesi):</b> ${data['resistance']:,.4f}</p>
-                    <p class="analysis-text">⚖️ <b>Risk/Ödül Oranı (R/R):</b> {data['rr_ratio']:.2f} (1 birim risk için potansiyel kazanç)</p>
-                </div>
-                
-                <p style="color:#888; font-size:0.8rem; margin-top:10px;">*Veri Kaynağı: {data['source']} | Yatırım tavsiyesi değildir.</p>
                 """, unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
                 
                 st.write("")
                 components.html(f"""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>{{"width": "100%", "height": "500", "symbol": "BINANCE:{data['symbol']}USDT", "interval": "60", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "tr", "enable_publishing": false, "hide_side_toolbar": false, "allow_symbol_change": true, "studies": ["STD;MACD", "STD;RSI"], "support_host": "https://www.tradingview.com"}}</script></div>""", height=500)
-
             else:
-                st.error(f"'{search_query}' için veri alınamadı. İnternet bağlantınızı kontrol edin veya farklı bir sembol deneyin.")
+                st.error("Veri alınamadı. Lütfen tekrar deneyin.")
 
     with tab2:
-        st.subheader("🚀 PİYASA HAREKETLİLİĞİ")
         components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-hotlists.js" async>{"colorTheme": "dark", "dateRange": "12M", "exchange": "BINANCE", "showChart": true, "locale": "tr", "largeChartUrl": "", "isTransparent": true, "showSymbolLogo": true, "width": "100%", "height": "500"}</script></div>""", height=500)
-        st.subheader("📰 HABER AKIŞI")
-        components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>{"feedMode": "all_symbols", "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": "500", "locale": "tr"}</script></div>""", height=500)
 
     with tab3:
-        st.markdown("### 🎓 YATIRIM EĞİTİMİ")
         c1, c2 = st.columns(2)
-        with c1: st.markdown("""<div class="tool-card"><h4>📘 Teknik Analiz 101</h4><p>Mum formasyonları ve destek/direnç öğrenin.</p></div>""", unsafe_allow_html=True)
-        with c2: st.markdown("""<div class="tool-card"><h4>🧠 Risk Psikolojisi</h4><p>FOMO yönetimi ve disiplinli işlem stratejileri.</p></div>""", unsafe_allow_html=True)
+        with c1: st.markdown("""<div class="tool-card"><h4>📘 Teknik Analiz 101</h4><p>Mum formasyonları...</p></div>""", unsafe_allow_html=True)
+        with c2: st.markdown("""<div class="tool-card"><h4>🧠 Psikoloji</h4><p>FOMO yönetimi...</p></div>""", unsafe_allow_html=True)
 
     with tab4:
         st.subheader("🧮 ROI SİMÜLATÖRÜ")
-        caps = st.number_input("Başlangıç Sermayesi ($)", 100, 100000, 1000)
-        risk = st.slider("İşlem Başı Risk (%)", 0.5, 5.0, 2.0)
-        st.markdown(f"<div class='glass-box'>Potansiyel Bakiye: <b style='color:#66fcf1'>${caps * (1 + (risk/100)*10):,.2f}</b> (10 Başarılı İşlem Sonrası)</div>", unsafe_allow_html=True)
+        caps = st.number_input("Sermaye ($)", 100, 100000, 1000)
+        risk = st.slider("Risk (%)", 1, 10, 2)
+        st.info(f"Maksimum Kayıp: ${caps * risk / 100}")
 
     with tab5:
-        st.markdown("<h2 style='text-align:center; color:#fff;'>ÜYELİK YÜKSELT</h2>", unsafe_allow_html=True)
-        st.markdown("""<div class="glass-box" style="text-align:left;"><h3 style="color:#00ff00;">🔥 ÖMÜR BOYU PAKET İÇERİĞİ:</h3><ul style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; color:#fff; list-style:none;"><li>✅ <b>Market Waves Pro</b> (Trend Takipçisi)</li><li>✅ <b>Market Core Pro</b> (Piyasa Yapısı)</li><li>✅ <b>Beluga Nautilus Pro</b> (Balina Hacmi)</li><li>✅ <b>Ultimate MACD</b> Paketi</li><li>✅ <b>Ultimate RSI</b> Paketi</li><li>✅ <b>Premium Uyumsuzluk</b> (Divergence)</li><li>✅ <b>7/24</b> Destek & Güncellemeler</li></ul></div><br>""", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center;'>VIP ÜYELİK</h2>", unsafe_allow_html=True)
+        c1, c2, c3 = st.columns(3)
+        with c1: st.markdown("""<div class="tool-card"><h3>AYLIK</h3><h1>$30</h1></div>""", unsafe_allow_html=True)
+        with c2: st.markdown("""<div class="tool-card"><h3>YILLIK</h3><h1>$250</h1></div>""", unsafe_allow_html=True)
+        with c3: st.markdown("""<div class="tool-card"><h3>LIFETIME</h3><h1>$500</h1></div>""", unsafe_allow_html=True)
 
-        pc1, pc2, pc3 = st.columns(3)
-        with pc1: st.markdown("""<div class="pricing-card"><h3>BAŞLANGIÇ</h3><div style="font-size:2rem;color:#fff;">$30</div><p>/ay</p></div>""", unsafe_allow_html=True)
-        with pc2: st.markdown("""<div class="pricing-card" style="border:1px solid #ffd700;"><h3>VIP</h3><div style="font-size:2rem;color:#fff;">$75</div><p>/çeyrek</p></div>""", unsafe_allow_html=True)
-        with pc3: st.markdown("""<div class="pricing-card"><h3>ÖMÜR BOYU</h3><div style="font-size:2rem;color:#fff;">$250</div><p>tek sefer</p></div>""", unsafe_allow_html=True)
-
-        st.write("")
-        c1, c2 = st.columns([1, 2])
-        with c1:
-            with st.expander("👤 AYARLAR", expanded=True):
-                st.text_input("Kullanıcı Adı", value=ui.get('Username'), disabled=True)
-                st.button("ŞİFRE GÜNCELLE")
-                st.markdown("**Telegram:** [@Orhan1909](https://t.me/Orhan1909)")
-
-        with c2:
-            st.markdown("""<div class='payment-card'><h3 style='color:#ffd700; margin-top:0;'>💳 ÖDEME BİLGİLERİ</h3><div style='text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:5px; margin-bottom:5px;'><b>USDT (TRC20):</b><br><code style='color:#fff;'>TL8w... (SENİN_ADRESİN)</code></div><div style='text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:5px; margin-bottom:5px;'><b>IBAN (Banka):</b><br><code style='color:#fff;'>TR12 0000... (SENİN_IBANIN)</code></div></div>""", unsafe_allow_html=True)
-            sel = st.selectbox("Paket Seçimi", ["Başlangıç", "VIP", "Ömür Boyu"])
-            tx = st.text_input("İşlem ID (Hash)")
-            if st.button("ÖDEMEYİ ONAYLA"): st.success("Bildirim Admin'e iletildi!")
-
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    with st.expander("⚖️ YASAL | KVKK & GİZLİLİK POLİTİKASI"):
-        st.markdown("### KİŞİSEL VERİLERİN KORUNMASI KANUNU (KVKK) AYDINLATMA METNİ\nCRAZYTOWN CAPITAL olarak...")
-
-# ==========================================
-# 5. BAŞLAT
-# ==========================================
 if st.session_state.logged_in: show_dashboard()
 elif st.session_state.current_page == 'Home': show_home()
 elif st.session_state.current_page == 'Register': show_auth("Register")
