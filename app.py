@@ -212,7 +212,7 @@ def go_to(page):
 # --- HOME ---
 def show_home():
     components.html("""<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>{"symbols": [{"proName": "CRYPTOCAP:TOTAL", "title": "Total Market Cap"}, {"proName": "CRYPTOCAP:BTC.D", "title": "BTC Dominance"}, {"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"}, {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "en"}</script></div>""", height=50)
-    st.markdown('<div class="hero-title">CRAZYTOWN CAPITAL</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-title">OA|Trade</div>', unsafe_allow_html=True)
     st.markdown('<div class="hero-sub">ENTERPRISE TRADING TERMINAL V6</div>', unsafe_allow_html=True)
 
     c1, c2, c3, c4, c5 = st.columns([1,1,1,1,1])
@@ -463,4 +463,5 @@ if st.session_state.logged_in: show_dashboard()
 elif st.session_state.current_page == 'Home': show_home()
 elif st.session_state.current_page == 'Register': show_register()
 elif st.session_state.current_page == 'Login': show_login()
+
 
