@@ -15,7 +15,7 @@ import pandas_ta as ta  # Teknik analiz kütüphanesi
 # 1. AYARLAR VE CSS (V600 ULTRA DESIGN)
 # ==========================================
 st.set_page_config(
-    page_title="OA|Trade| V600 Terminal",
+    page_title="OA| V600 Terminal",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -463,6 +463,7 @@ if st.session_state.logged_in: show_dashboard()
 elif st.session_state.current_page == 'Home': show_home()
 elif st.session_state.current_page == 'Register': show_register()
 elif st.session_state.current_page == 'Login': show_login()
+
 
 
 
